@@ -8,7 +8,7 @@ MODEL = os.environ["LLM_MODEL"]
 CACHE = pathlib.Path(__file__).parent / "cache"
 CACHE.mkdir(exist_ok=True)
 
-def ask_json(system: str, user: str, max_tokens: int = 1500) -> dict:
+def ask_json(system: str, user: str, max_tokens: int = 3000) -> dict:
     key = CACHE / (hashlib.md5((MODEL + system + user).encode()).hexdigest() + ".json")
     if key.exists():
         return json.loads(key.read_text())
