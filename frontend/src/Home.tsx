@@ -45,16 +45,6 @@ const startClaim = () => {
   window.location.hash = '#/start'
 }
 
-const Tag = ({ children, tone = 'white' }: { children: ReactNode; tone?: 'white' | 'gold' | 'dark' }) => (
-  <span
-    className={`font-pixel inline-block border-[3px] border-slate-900 px-2.5 py-1 text-xs tracking-wider uppercase ${
-      tone === 'gold' ? 'bg-amber-300 text-slate-900' : tone === 'dark' ? 'bg-slate-900 text-amber-300' : 'bg-white text-slate-900'
-    }`}
-  >
-    {children}
-  </span>
-)
-
 /* ---------- character cards: one shape (5:7), three characters ---------- */
 
 type Card = {
@@ -214,14 +204,13 @@ function Hero() {
     <section className="relative overflow-hidden px-5 pt-28 pb-16 md:pt-32">
       <div className="mx-auto flex max-w-6xl flex-col items-center">
         <Reveal className="scene-card w-full max-w-3xl text-center">
-          <div className="flex flex-wrap justify-center gap-2">
-            <Tag tone="dark">1 player</Tag>
-            <Tag tone="gold">★ Insert claim</Tag>
-          </div>
-          <h1 className="mt-5 text-4xl leading-[1.04] font-black tracking-tight text-slate-900 sm:text-6xl">
-            Companies hide behind bots.
-            <span className="mt-1 block text-[#7a2a14]">Quillby fights them for you.</span>
+          <h1 className="text-5xl leading-[1.02] font-black tracking-tight text-slate-900 sm:text-7xl">
+            Press 1 to fight.
+            <span className="mt-1 block text-[#7a2a14]">Press 0 for a human.</span>
           </h1>
+          <p className="mx-auto mt-5 max-w-xl text-lg leading-snug font-bold text-slate-700 sm:text-xl">
+            Companies hide behind bots. <span className="text-[#7a2a14]">Quillby fights them for you.</span>
+          </p>
           <button onClick={startClaim} className="px-btn font-pixel mt-6 bg-amber-300 px-8 py-4 text-base text-slate-900 uppercase">
             ▶ Start your claim
           </button>
