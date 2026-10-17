@@ -1,103 +1,62 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAssistant } from './assistant'
-import type { Place } from './assistant'
 import { CounterbotSprite } from './Sprite'
 
 const W = 80 // sprite size at scale 4 (20 x 24 pixels)
 const H = 96
-const HEADER = 70
-const QUIPS = ['Psst. Click me when you need me.', 'I read small print for fun.', 'Nice day for a fight with a bot.', 'Got a document? I will go and fetch it.', 'Just stretching my legs.']
+const HEADER = 76
+const MARGIN = 16
+const CORNERS = ['br', 'bl', 'tl', 'tr'] as const
+type Corner = (typeof CORNERS)[number]
 
 const reduced = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const dock = (place: Place) => ({ x: place === 'right' ? window.innerWidth - W - 16 : 16, y: window.innerHeight - H - 16 })
-const randomSpot = () => ({
-  x: 8 + Math.random() * Math.max(1, window.innerWidth - W - 16),
-  y: HEADER + Math.random() * Math.max(1, window.innerHeight - H - HEADER - 12),
+const spot = (c: Corner) => ({
+  x: c === 'bl' || c === 'tl' ? MARGIN : window.innerWidth - W - MARGIN,
+  y: c === 'tl' || c === 'tr' ? HEADER : window.innerHeight - H - MARGIN,
 })
 
-// Counterbot roams the screen on his own. Click him to send him to his post, where he works
-// (reads documents, fights the bot); click again to let him wander off.
+// Counterbot sits quietly in the bottom-right corner. Click him and he waves his wand, then
+// floats to the next corner, where he stays until he is clicked again.
 export function Companion() {
-  const { line, mood, place, hidden, working } = useAssistant()
-  const [override, setOverride] = useState<'focus' | 'roam' | null>(null)
-  const mode = override ?? (working ? 'focus' : 'roam')
-  const [pos, setPos] = useState(() => dock(place))
-  const posRef = useRef(pos)
-  const [face, setFace] = useState(1)
-  const [walking, setWalking] = useState(false)
-  const [moveMs, setMoveMs] = useState(0)
-  const [quip, setQuip] = useState('')
+  const { line, mood, hidden } = useAssistant()
+  const [corner, setCorner] = useState<Corner>('br')
+  const [pos, setPos] = useState(() => spot('br'))
+  const [waveSignal, setWaveSignal] = useState(0)
+  const [floating, setFloating] = useState(false)
   const [recent, setRecent] = useState(false)
   const [shown, setShown] = useState('')
-  const walkTimer = useRef(0)
+  const busy = useRef(false)
+  const timers = useRef<number[]>([])
 
-  useEffect(() => setOverride(null), [working])
-
-  const moveTo = useCallback((to: { x: number; y: number }) => {
-    const from = posRef.current
-    const dist = Math.hypot(to.x - from.x, to.y - from.y)
-    const ms = Math.max(300, Math.min(2600, dist * 4.2))
-    if (to.x !== from.x) setFace(to.x < from.x ? -1 : 1)
-    posRef.current = to
-    setMoveMs(ms)
-    setWalking(true)
-    setPos(to)
-    window.clearTimeout(walkTimer.current)
-    walkTimer.current = window.setTimeout(() => setWalking(false), ms)
-    return ms
-  }, [])
-
-  // Focus mode: stand at the post.
+  // Keep him in his corner when the window changes size.
   useEffect(() => {
-    if (mode !== 'focus') return
-    moveTo(dock(place))
-    const onResize = () => moveTo(dock(place))
+    const onResize = () => setPos(spot(corner))
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [mode, place, moveTo])
+  }, [corner])
 
-  // Roam mode: wander to a random spot, pause, repeat.
-  useEffect(() => {
-    if (mode !== 'roam') return
-    if (reduced()) {
-      moveTo(dock(place))
-      return
-    }
-    let t = 0
-    const step = () => {
-      const ms = moveTo(randomSpot())
-      t = window.setTimeout(step, ms + 900 + Math.random() * 2200)
-    }
-    t = window.setTimeout(step, 600)
-    return () => window.clearTimeout(t)
-    // place only matters when docking
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, moveTo])
+  useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), [])
 
-  // An occasional remark while roaming.
-  useEffect(() => {
-    if (mode !== 'roam' || reduced()) return
-    let t1 = 0
-    let t2 = 0
-    const loop = () => {
-      t1 = window.setTimeout(
-        () => {
-          setQuip(QUIPS[Math.floor(Math.random() * QUIPS.length)])
-          t2 = window.setTimeout(() => setQuip(''), 4500)
-          loop()
-        },
-        9000 + Math.random() * 7000,
-      )
-    }
-    loop()
-    return () => {
-      window.clearTimeout(t1)
-      window.clearTimeout(t2)
-      setQuip('')
-    }
-  }, [mode])
+  const next = () => {
+    if (busy.current) return
+    busy.current = true
+    const to = CORNERS[(CORNERS.indexOf(corner) + 1) % CORNERS.length]
+    setWaveSignal((n) => n + 1)
+    const go = reduced() ? 0 : 1100
+    timers.current.push(
+      window.setTimeout(() => {
+        setCorner(to)
+        setFloating(true)
+        setPos(spot(to))
+      }, go),
+      window.setTimeout(() => {
+        setFloating(false)
+        busy.current = false
+      }, go + 1500),
+    )
+  }
 
-  // A fresh line from the page is shown for a few seconds even while roaming.
+  // A fresh line from the page is shown briefly, then he goes quiet again.
   useEffect(() => {
     if (!line) return
     setRecent(true)
@@ -105,7 +64,7 @@ export function Companion() {
     return () => window.clearTimeout(t)
   }, [line])
 
-  const text = mode === 'focus' ? line : quip || (recent ? line : '')
+  const text = recent ? line : ''
   useEffect(() => {
     if (reduced()) {
       setShown(text)
@@ -123,6 +82,8 @@ export function Companion() {
   }, [text])
 
   if (hidden) return null
+  const onRight = corner === 'br' || corner === 'tr'
+  const below = corner === 'tl' || corner === 'tr'
   const tone =
     mood === 'fight'
       ? { border: '#953724', bg: '#fbe7df', chip: 'bg-rose-600 text-white' }
@@ -131,8 +92,6 @@ export function Companion() {
         : mood === 'think'
           ? { border: '#946520', bg: '#fff3c4', chip: 'bg-amber-300 text-slate-900' }
           : { border: '#4a3827', bg: '#eee4cd', chip: 'bg-slate-900 text-amber-300' }
-  const onRight = pos.x > window.innerWidth / 2
-  const below = pos.y < 170
 
   return (
     <div
@@ -142,17 +101,17 @@ export function Companion() {
         top: pos.y,
         width: W,
         height: H,
-        transition: reduced() ? 'none' : `left ${moveMs}ms linear, top ${moveMs}ms linear`,
+        transition: reduced() ? 'none' : 'left 1.4s ease-in-out, top 1.4s ease-in-out',
       }}
     >
       <button
-        onClick={() => setOverride(mode === 'focus' ? 'roam' : 'focus')}
+        onClick={next}
         className="pointer-events-auto block size-full cursor-pointer bg-transparent"
-        aria-label={mode === 'focus' ? 'Counterbot is working. Click to let him wander.' : 'Counterbot is wandering. Click to put him to work.'}
-        title={mode === 'focus' ? 'Click to let him wander' : 'Click to put him to work'}
+        aria-label="Counterbot. Click and he will wave and float to another corner."
+        title="Click me"
       >
-        <span style={{ display: 'inline-block', transform: `scaleX(${face})` }}>
-          <CounterbotSprite mood={mood} scale={4} walking={walking} bob={!walking} />
+        <span style={{ display: 'inline-block', transform: floating ? 'translateY(-8px)' : undefined, transition: 'transform 0.5s ease-in-out' }}>
+          <CounterbotSprite mood={mood} scale={4} idleWave waveSignal={waveSignal} />
         </span>
       </button>
       {text && shown && (
@@ -165,9 +124,6 @@ export function Companion() {
         >
           <span className={`font-pixel absolute -top-3.5 left-3 border-[3px] border-slate-900 px-2 py-0.5 text-[11px] tracking-wider uppercase ${tone.chip}`}>Counterbot ✦</span>
           <span className="animate-pulse absolute -top-3 right-2 text-lg leading-none font-black text-amber-500" aria-hidden>
-            ✦
-          </span>
-          <span className="animate-pulse absolute -right-2 bottom-3 text-sm leading-none font-black text-amber-500 [animation-delay:-0.5s]" aria-hidden>
             ✦
           </span>
           <p className="text-[15px] leading-snug font-extrabold text-slate-900">

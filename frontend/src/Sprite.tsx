@@ -170,26 +170,41 @@ function wizardRows(blink: boolean, mood: Mood, wave: number): string[] {
   return g.map((r) => r.join(''))
 }
 
-export function CounterbotSprite({ mood = 'idle', scale = 4, bob = true, walking = false, className = '' }: { mood?: Mood; scale?: number; bob?: boolean; walking?: boolean; className?: string }) {
+export function CounterbotSprite({
+  mood = 'idle',
+  scale = 4,
+  bob = true,
+  walking = false,
+  idleWave = false,
+  waveSignal = 0,
+  className = '',
+}: {
+  mood?: Mood
+  scale?: number
+  bob?: boolean
+  walking?: boolean
+  idleWave?: boolean // an occasional, rare wave of the staff
+  waveSignal?: number // change this number to make him wave once, right now
+  className?: string
+}) {
   const [blink, setBlink] = useState(false)
   const [wave, setWave] = useState(0)
   const calm = mood === 'fight'
   const walkingRef = useRef(walking)
   walkingRef.current = walking
   const timers = useRef<number[]>([])
-  const cast = useCallback(() => {
-    if (walkingRef.current) return
-    ;[1, 2, 1, 2, 1, 0].forEach((f, i) => timers.current.push(window.setTimeout(() => setWave(f), i * 170)))
+  const cast = useCallback((force = false) => {
+    if (walkingRef.current && !force) return
+    ;[1, 2, 1, 2, 1, 2, 1, 0].forEach((f, i) => timers.current.push(window.setTimeout(() => setWave(f), i * 160)))
   }, [])
-  // Now and then he waves his staff and a little magic flies: on a timer, and often when he stops walking.
   useEffect(() => {
-    if (calm || (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return
+    if (!idleWave || calm || (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return
     let t = 0
     const loop = () => {
       t = window.setTimeout(() => {
         cast()
         loop()
-      }, 4000 + Math.random() * 4000)
+      }, 14000 + Math.random() * 10000)
     }
     loop()
     const pending = timers.current
@@ -198,14 +213,10 @@ export function CounterbotSprite({ mood = 'idle', scale = 4, bob = true, walking
       pending.forEach((id) => window.clearTimeout(id))
       setWave(0)
     }
-  }, [calm, cast])
+  }, [idleWave, calm, cast])
   useEffect(() => {
-    if (walking || calm) return
-    const t = window.setTimeout(() => {
-      if (Math.random() < 0.5) cast()
-    }, 350)
-    return () => window.clearTimeout(t)
-  }, [walking, calm, cast])
+    if (waveSignal > 0) cast(true)
+  }, [waveSignal, cast])
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let t1 = 0
