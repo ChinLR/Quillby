@@ -72,10 +72,10 @@ def typing_s(sender: str, text: str) -> float:
     """How long a side "types" a message at speed 1 (seconds), so long lines take longer."""
     n = len(text)
     if sender == "customer_bot":
-        return 1.5 + n / 28
+        return 2.0 + n / 18  # Counterbot types like a quick person
     if sender == "human_agent":
-        return 2.5 + n / 40
-    return 1.0 + n / 45  # company bot
+        return 3.0 + n / 16  # the agent reads, then types
+    return 1.5 + n / 40  # the airline's bot answers faster than a person
 
 
 def now_iso() -> str:

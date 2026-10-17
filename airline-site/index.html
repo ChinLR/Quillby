@@ -225,7 +225,7 @@
     if (callLines > 0) {
       banner.className = "banner show done";
       banner.textContent = "☎ Call completed. Thanks for your patience.";
-    } else if (inbox.call_number) {
+    } else if (inbox.call_number && !revealing && queue.length === 0) {  // wait until the chat has shown the reply with the number
       banner.className = "banner show";
       banner.textContent = "☎ Sam is calling your assistant on " + inbox.call_number + ". Waiting for the call…";
     } else {

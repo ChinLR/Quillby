@@ -148,7 +148,11 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
 
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={() => onStart(checkIns)}
+                onClick={() => {
+                  // Open the airline's (fake) site in its own tab; its support chat fills in as Counterbot talks.
+                  window.open('/northwind/', 'northwind-airline')
+                  onStart(checkIns)
+                }}
                 disabled={!claim.result.supported}
                 className="px-btn font-pixel bg-amber-300 px-6 py-3 text-sm text-slate-900 uppercase disabled:cursor-not-allowed disabled:opacity-40"
               >
