@@ -1,5 +1,5 @@
 import type { Report } from './api'
-import { WizardSprite } from './Sprite'
+import { PixelSprite, WizardSprite } from './Sprite'
 
 type Verdict = 'full' | 'good' | 'partial' | 'none'
 
@@ -10,6 +10,46 @@ function judge(r: Report): Verdict {
   if (r.offer_type === 'cash' && r.amount_gbp >= r.goal_gbp) return 'full'
   if (r.offer_type === 'cash' && r.amount_gbp >= r.floor_gbp) return 'good'
   return 'partial'
+}
+
+// An open treasure chest heaped with gold coins, for a win.
+const CHEST = [
+  '..kkkkkkkkkkkk..',
+  '.kbbbbbbbbbbbbk.',
+  '.kbddddddddddbk.',
+  '.kbbbbbbbbbbbbk.',
+  '..kkohggghgokk..',
+  '.kogghgogghggok.',
+  'kogghgggoghgggok',
+  'kkkkkkkkkkkkkkkk',
+  'kbbbbbbbbbbbbbbk',
+  'kddddddddddddddk',
+  'kbbbbbkggkbbbbbk',
+  'kbbbbbkgokbbbbbk',
+  'kbbbbbbbbbbbbbbk',
+  'kddddddddddddddk',
+  'kkkkkkkkkkkkkkkk',
+]
+const CHEST_COLORS = { k: '#3a2a1c', b: '#8a5a3b', d: '#6a4228', g: '#f4c93f', h: '#fff1a8', o: '#c9921f' }
+
+function Treasure() {
+  return (
+    <div className="relative px-8 py-3">
+      <div className="px-bob">
+        <PixelSprite rows={CHEST} colors={CHEST_COLORS} scale={8} label="A treasure chest full of gold coins" />
+      </div>
+      {[
+        'left-2 top-2',
+        'right-3 top-0',
+        'left-6 bottom-6',
+        'right-1 bottom-10',
+      ].map((pos, i) => (
+        <span key={pos} className={`absolute ${pos} animate-pulse text-xl font-black text-amber-400`} style={{ animationDelay: `${i * 0.3}s` }} aria-hidden>
+          ✦
+        </span>
+      ))}
+    </div>
+  )
 }
 
 const COPY: Record<Verdict, { tag: string; title: string; line: string }> = {
@@ -39,7 +79,7 @@ export function Ending({ report, onReview, onAgain, onNew }: { report: Report; o
         <div className={`px-6 pt-6 pb-4 ${ok ? 'bg-[#e8d9a6]' : 'bg-[#e3d2bd]'}`}>
           <p className="font-pixel text-xs text-slate-700 uppercase">{c.tag}</p>
           <div className="mt-3 flex justify-center">
-            <WizardSprite scale={6} mood={ok ? 'happy' : 'sad'} />
+            {v === 'full' || v === 'good' ? <Treasure /> : <WizardSprite scale={6} mood={ok ? 'happy' : 'sad'} />}
           </div>
           <h2 className="mt-3 text-4xl font-black text-black sm:text-5xl">{c.title}</h2>
           {ok && (
