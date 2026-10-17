@@ -3,9 +3,10 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 Sender = Literal["customer_bot", "company_bot", "human_agent", "customer", "system"]
-Status = Literal["running", "paused", "won", "walked_away", "failed"]
+Status = Literal["running", "paused", "awaiting_call", "on_call", "won", "walked_away", "failed"]
 OfferType = Literal["voucher", "cash"]
-EventType = Literal["message", "tactic", "detection", "offer", "status"]
+EventType = Literal["message", "tactic", "detection", "offer", "status", "call"]
+Channel = Literal["chat", "call"]
 
 
 class Legal(BaseModel):
@@ -29,6 +30,8 @@ class Case(BaseModel):
     goal_gbp: int
     floor_gbp: int
     legal: Legal
+    complaint_type: str = "flight_delay"
+    summary: str = ""
 
 
 class Message(BaseModel):
@@ -40,6 +43,7 @@ class Message(BaseModel):
     clicked_button: Optional[str] = None
     typing_ms: int = 0
     created_at: str
+    channel: Channel = "chat"
 
 
 class Tactic(BaseModel):
@@ -68,6 +72,14 @@ class StatusUpdate(BaseModel):
     detail: str = ""
 
 
+class CallState(BaseModel):
+    status: Literal["waiting", "in_progress", "processing", "done", "failed"]
+    phone_number: str
+    conversation_id: str = ""
+    duration_seconds: int = 0
+    detail: str = ""
+
+
 class EventEnvelope(BaseModel):
     seq: int
     type: EventType
@@ -76,6 +88,7 @@ class EventEnvelope(BaseModel):
     detection: Optional[Detection] = None
     offer: Optional[Offer] = None
     status: Optional[StatusUpdate] = None
+    call: Optional[CallState] = None
 
 
 class NegotiationState(BaseModel):
@@ -101,13 +114,16 @@ class Report(BaseModel):
     estimated_minutes_saved: int
     stages_reached: list[str]
     transcript: list[Message]
+    resolved_on: Literal["chat", "call", "none"]
+    call_duration_seconds: int
 
 
 class ConcessionStep(BaseModel):
     step: int
-    offer_type: OfferType
+    offer_type: Literal["voucher", "cash", "call"]
     amount_gbp: int
     condition: str
+    channel: Channel
 
 
 # Request and small response bodies
@@ -150,3 +166,21 @@ class Inbox(BaseModel):
     auto_agent: bool
     messages: list[Message]
     cheat_sheet: list[ConcessionStep]
+    call_number: str
+
+
+class IntakeRequest(BaseModel):
+    description: str = Field(min_length=10)
+    goal_gbp: Optional[int] = None
+    floor_gbp: Optional[int] = None
+
+
+class IntakeResult(BaseModel):
+    supported: bool
+    note: str
+    case: Case
+
+
+class CallOutcomeBody(BaseModel):
+    amount_gbp: int = Field(ge=0)
+    offer_type: Literal["cash", "voucher", "none"]

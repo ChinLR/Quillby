@@ -14,7 +14,7 @@ from pydantic import BaseModel, ValidationError
 
 from company import HUMAN_RE, REJECT_RE, RULE_RE, MockCompany
 from models import Detection
-from run_base import BOT_LABEL, CASE, COMPANY, NODES, RunBase, parse_offer
+from run_base import BOT_LABEL, COMPANY, NODES, RunBase, parse_offer
 
 try:
     from llm import ask_json
@@ -38,6 +38,7 @@ MOVE_HELP = {
     "counter": "Say the offer is close and ask for the full amount.",
     "accept_offer": "Accept the cash offer and ask for written confirmation.",
     "walk_away": "Decline and say you will take it to the dispute resolution scheme.",
+    "accept_call": "Agree to continue by phone and give the exact number they should call. Say the passenger's assistant will answer.",
 }
 
 # Template lines used when the LLM is unavailable or its answer fails a check.
@@ -74,23 +75,31 @@ class TacticStep(BaseModel):
     clicked_button: str = ""
 
 
+class CallOutcome(BaseModel):
+    agreed: bool = False
+    amount_gbp: int = 0
+    offer_type: str = "none"
+
+
 class OfferParse(BaseModel):
     offer_gbp: int = 0
     offer_type: str = "none"
     accepts_claim: bool = False
 
 
-def _system_prompt(goal: int, floor: int) -> str:
-    c = CASE
+def _system_prompt(c, goal: int, floor: int) -> str:
     rules = "\n".join(f"- {p}" for p in c.legal.points)
     return (
         "You are Counterbot, an AI assistant negotiating on behalf of an airline passenger in the airline's support chat.\n"
         "Honesty rules: use only the facts below, never invent evidence or events, never claim to be a human. "
         "If asked, say you are an assistant acting for the passenger.\n"
-        "Style: firm, polite, natural, like a determined person. At most 2 short sentences, under 35 words. No emojis.\n\n"
+        "Style: firm, polite, natural, like a determined person. At most 2 short sentences, under 35 words. No emojis. "
+        "Refer to the passenger by name in the third person (e.g. 'Alex is owed'), never as 'I' or 'me'.\n\n"
         f"Passenger: {c.passenger_name}. Booking {c.booking_ref}. Flight {c.flight_number}, {c.origin} to {c.destination}.\n"
         f"Scheduled arrival {c.scheduled_arrival}, actual arrival {c.actual_arrival}: {c.delay_minutes} minutes late.\n"
         f"Airline's stated reason: {c.airline_reason}.\n"
+        + (f"Passenger's own words: {c.summary}\n" if c.summary else "")
+        + 
         f"Goal: £{goal} in cash. Never accept less than £{floor} in cash. Never accept vouchers.\n"
         "Your minimum is private: never state it, hint at it, or mention any amount other than the goal or the offer on the table.\n\n"
         f"Rules you may cite ({c.legal.title}):\n{rules}\n\n"
@@ -113,7 +122,7 @@ class Run(RunBase):
         self.handoff_seen = False
         self._company_latencies: list[float] = []
         self._fallback_i = 0
-        self.system = _system_prompt(self.goal, self.floor)
+        self.system = _system_prompt(self.case, self.goal, self.floor)
 
     # LLM plumbing
 
@@ -151,7 +160,7 @@ class Run(RunBase):
         if node_id == "deflect" and self.rule_citations < 1:
             return 4, ["cite_rule"]
         if node_id in LOOP_NODES and self.rejections < 2:
-            return 3, ["reject_loop", "demand_human"]
+            return 3, ["reject_loop"]
         if self.rule_citations < 1:
             return 4, ["cite_rule"]
         if not self.pressure_used:
@@ -159,7 +168,7 @@ class Run(RunBase):
         return 6, ["demand_human"]
 
     def _template(self, move: str) -> str:
-        c = CASE
+        c = self.case
         return TEMPLATES[move].format(name=c.passenger_name, flight=c.flight_number, ref=c.booking_ref, goal=self.goal)
 
     def _guard(self, move: str, text: str, buttons: list[str], clicked: str) -> tuple[str, str | None]:
@@ -169,7 +178,7 @@ class Run(RunBase):
                 clicked = next((b for b in buttons if "else" in b.lower()), buttons[-1])
             return clicked, clicked
         if not self.disclosed and not re.search(r"\bassistant\b", text, re.I):
-            text = f"I'm an assistant acting for {CASE.passenger_name}. {text}"
+            text = f"I'm an assistant acting for {self.case.passenger_name}. {text}"
         if move == "reject_loop" and not REJECT_RE.search(text):
             text += " My issue isn't listed."
         if move in ("reject_loop", "pressure", "demand_human") and not HUMAN_RE.search(text):
@@ -305,6 +314,8 @@ class Run(RunBase):
             f"Your decision is fixed: {move}. {MOVE_HELP[move]}\n"
             f"Decision reason: {reason}\n"
             f"Offer on the table: {'£' + str(amount) + ' ' + context['offer_type'] if amount is not None else 'none'}.\n"
+            + (f"The number to give for the call: {context['number']}\n" if move == "accept_call" else "")
+            + 
             f"Write the message for this decision. Use exact amounts with a £ sign. Allowed moves:\n- {move}: {MOVE_HELP[move]}"
         )
         out = await self._ask(user)
@@ -324,4 +335,26 @@ class Run(RunBase):
             return template, reason
         if self._leaks_floor(text) and amount != self.floor:
             return template, reason
+        if move == "accept_call" and context["number"] not in text:
+            return template, reason
         return text, (step.reason.strip() or reason)
+
+    # the call: read the outcome from the transcript
+
+    async def _read_call_outcome(self, lines):
+        transcript = "\n".join(f"{'Counterbot' if r == 'agent' else 'Caller'}: {t}" for r, t in lines)
+        out = await self._ask(
+            "Read this phone call between Counterbot (for the passenger) and the airline's caller. "
+            "Did they agree a compensation payment? If yes, give the final agreed amount and type.\n\n"
+            f"{transcript}\n\n"
+            'Reply with JSON: {"agreed": false, "amount_gbp": 0, "offer_type": "cash|voucher|none"}'
+        )
+        try:
+            o = CallOutcome(**(out or {}))
+        except ValidationError:
+            o = None
+        if o and o.agreed and o.amount_gbp > 0 and o.offer_type in ("cash", "voucher"):
+            return o.amount_gbp, o.offer_type
+        if o and not o.agreed:
+            return 0, "none"
+        return await super()._read_call_outcome(lines)

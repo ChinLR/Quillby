@@ -3,6 +3,20 @@
 Handoff notes for the frontend. Newest first. Keep each entry to a few lines.
 Anything that changes an endpoint or schema goes in contract.md too.
 
+## 2026-10-17 v2 backend is live: intake + call phase (contract v2, all additive)
+Pull, run `npm run types`. New things to build, in priority order:
+1. **Intake screen** before the dashboard: textarea "What went wrong?" (prefill: "My Northwind flight from Edinburgh to Faro landed almost 4 hours late and they blamed operational reasons. I want my compensation."), optional goal and minimum. `POST /api/intake` returns `{ supported, note, case }`. Show the case as a confirm card plus `note`. If `supported` is false, show the note and disable Start (Start would return 409). Any complaint is accepted; only flight delays run.
+2. **Line by line**: the stream is already live. Queue incoming messages and reveal them one at a time, with a typing bubble for `typing_ms` before each. Don't dump history while a run is live.
+3. **Sides everywhere** (dashboard and `#/agent`): `customer_bot` and `customer` right, `company_bot` and `human_agent` left, `system` centred.
+4. **Call panel** (new statuses `awaiting_call`, `on_call`; new event type `call` with `CallState`):
+   - `awaiting_call`: "Northwind is calling Counterbot on {call.phone_number}" (show `call.detail` if not empty, e.g. voice not configured).
+   - `on_call`: phone-style panel with a timer (`call.duration_seconds`) and the call transcript: messages with `channel: "call"` (customer_bot = Counterbot's voice, human_agent = caller). Lines may arrive in batches.
+   - Fallback buttons while in the call phase: "Record result: £350 cash" / "No deal" -> `POST /api/negotiations/{id}/call/outcome` `{amount_gbp, offer_type}` (`offer_type` "none" = no deal).
+   - Pause/Resume are 409 during the call phase: disable them.
+5. **Agent window**: once `call_number` in the inbox is not "", show it big ("Call this number now"). The reply box returns 409 after that.
+6. **Report**: show `resolved_on` ("Settled on the call") and `call_duration_seconds`.
+The cheat sheet now has 5 steps with a `channel` field: chat steps 1-3 (voucher, £150, "say you'll call"), call steps 4-5 (£300, £350).
+
 ## 2026-10-17 Real engine is live (shapes unchanged)
 - Default `ENGINE=real`: the LLM picks each move (from moves the engine allows) and writes the message and the board reason. Guards check every message; on any LLM problem a template line is used, so a run never stalls.
 - The rehearsed run is cached in `backend/cache/` (committed). Same run replays identically; `REPLAY_MODE=1` serves only the cache. A live run takes about 20 s at speed 3, a cached one about 11 s.

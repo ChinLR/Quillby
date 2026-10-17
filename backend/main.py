@@ -7,13 +7,18 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+import intake
 from models import (
     AutoAgentBody,
     AutoAgentResponse,
+    CallOutcomeBody,
+    CallState,
     Case,
     HealthResponse,
     History,
     Inbox,
+    IntakeRequest,
+    IntakeResult,
     Message,
     NegotiationState,
     OkResponse,
@@ -23,7 +28,7 @@ from models import (
 )
 load_dotenv()  # ENGINE and REPLAY_MODE can live in .env
 
-from run_base import CASE, FINISHED, LADDER
+from run_base import CALL_PHASE, CASE, FINISHED, LADDER
 
 # ENGINE=stub plays the scripted run with no LLM calls (fallback for the demo).
 if os.environ.get("ENGINE", "real") == "stub":
@@ -42,6 +47,9 @@ app.add_middleware(
 # One active negotiation at a time (see .plans/contract.md).
 current: Run | None = None
 counter = 0
+# The case the next negotiation fights for: the seeded demo case, or the last intake.
+current_case: Case = CASE
+current_supported = True
 
 
 def get_run(nid: str) -> Run:
@@ -63,6 +71,11 @@ def stop_current():
     current = None
 
 
+def check_not_finished(run: Run):
+    if run.status in FINISHED:
+        raise HTTPException(status_code=409, detail="Negotiation already finished")
+
+
 @app.get("/api/health", response_model=HealthResponse)
 def health():
     return HealthResponse(ok=True, replay_mode=os.environ.get("REPLAY_MODE") == "1")
@@ -70,20 +83,32 @@ def health():
 
 @app.get("/api/case", response_model=Case)
 def get_case():
-    return CASE
+    return current_case
+
+
+@app.post("/api/intake", response_model=IntakeResult)
+async def post_intake(body: IntakeRequest):
+    global current_case, current_supported
+    if body.goal_gbp is not None and body.floor_gbp is not None and body.floor_gbp > body.goal_gbp:
+        raise HTTPException(status_code=422, detail="Floor cannot be above the goal")
+    result = await intake.build_case(body.description, body.goal_gbp, body.floor_gbp)
+    current_case, current_supported = result.case, result.supported
+    return result
 
 
 @app.post("/api/negotiations", response_model=NegotiationState)
 async def start_negotiation(body: StartRequest | None = None):
     global current, counter
     body = body or StartRequest()
-    goal = body.goal_gbp if body.goal_gbp is not None else CASE.goal_gbp
-    floor = body.floor_gbp if body.floor_gbp is not None else CASE.floor_gbp
+    if not current_supported:
+        raise HTTPException(status_code=409, detail="This demo negotiates flight delays only")
+    goal = body.goal_gbp if body.goal_gbp is not None else current_case.goal_gbp
+    floor = body.floor_gbp if body.floor_gbp is not None else current_case.floor_gbp
     if floor > goal:
         raise HTTPException(status_code=422, detail="Floor cannot be above the goal")
     stop_current()
     counter += 1
-    current = Run(f"n{counter}", goal, floor, body.speed)
+    current = Run(f"n{counter}", current_case, goal, floor, body.speed)
     current.task = asyncio.create_task(current.run())
     return current.state()
 
@@ -129,8 +154,9 @@ def get_history(nid: str, after: int = 0):
 @app.post("/api/negotiations/{nid}/pause", response_model=NegotiationState)
 def pause(nid: str):
     run = get_run(nid)
-    if run.status in FINISHED:
-        raise HTTPException(status_code=409, detail="Negotiation already finished")
+    check_not_finished(run)
+    if run.status in CALL_PHASE:
+        raise HTTPException(status_code=409, detail="Can't pause during the call phase")
     if not run.paused:
         run.pause()
     return run.state()
@@ -139,8 +165,9 @@ def pause(nid: str):
 @app.post("/api/negotiations/{nid}/resume", response_model=NegotiationState)
 def resume(nid: str):
     run = get_run(nid)
-    if run.status in FINISHED:
-        raise HTTPException(status_code=409, detail="Negotiation already finished")
+    check_not_finished(run)
+    if run.status in CALL_PHASE:
+        raise HTTPException(status_code=409, detail="Can't resume during the call phase")
     if run.paused:
         run.resume()
     return run.state()
@@ -151,7 +178,7 @@ def customer_message(nid: str, body: TextBody):
     run = get_run(nid)
     if not run.paused:
         raise HTTPException(status_code=409, detail="Pause the negotiation first")
-    return run.message("customer", "Alex (you)", body.text)
+    return run.message("customer", run.customer_label, body.text)
 
 
 @app.get("/api/negotiations/{nid}/report", response_model=Report)
@@ -162,9 +189,28 @@ def get_report(nid: str):
     return run.report()
 
 
+@app.get("/api/negotiations/{nid}/call", response_model=CallState)
+def get_call(nid: str):
+    run = get_run(nid)
+    if run.call_state is None:
+        raise HTTPException(status_code=409, detail="No call yet")
+    return run.call_state
+
+
+@app.post("/api/negotiations/{nid}/call/outcome", response_model=NegotiationState)
+def post_call_outcome(nid: str, body: CallOutcomeBody):
+    run = get_run(nid)
+    if run.status not in CALL_PHASE:
+        raise HTTPException(status_code=409, detail="Not in the call phase")
+    run.apply_call_outcome(body.amount_gbp, body.offer_type)
+    return run.state()
+
+
 @app.post("/api/reset", response_model=OkResponse)
 def reset():
+    global current_case, current_supported
     stop_current()
+    current_case, current_supported = CASE, True
     return OkResponse(ok=True)
 
 
@@ -174,7 +220,13 @@ def reset():
 @app.get("/api/company/inbox", response_model=Inbox)
 def inbox():
     run = get_current()
-    return Inbox(handed_off=run.handed_off, auto_agent=run.auto_agent, messages=run.messages(), cheat_sheet=LADDER)
+    return Inbox(
+        handed_off=run.handed_off,
+        auto_agent=run.auto_agent,
+        messages=run.messages(),
+        cheat_sheet=LADDER,
+        call_number=run.call_number if run.call_requested else "",
+    )
 
 
 @app.post("/api/company/reply", response_model=Message)
@@ -182,8 +234,9 @@ def agent_reply(body: TextBody):
     run = get_current()
     if not run.handed_off:
         raise HTTPException(status_code=409, detail="Not handed off yet")
-    if run.status in FINISHED:
-        raise HTTPException(status_code=409, detail="Negotiation already finished")
+    check_not_finished(run)
+    if run.status in CALL_PHASE:
+        raise HTTPException(status_code=409, detail="The chat is over: continue on the call")
     return run.post_agent_reply(body.text)
 
 

@@ -1,7 +1,7 @@
-"""Shared run state, event helpers and the human-agent phase for both engines.
+"""Shared run state, event helpers, the human-agent chat phase and the call phase.
 
 Engines subclass RunBase and implement _bot_phase. They can override _word
-(wording of a move), _parse_offer and _detect to use the LLM.
+(wording of a move), _parse_offer, _detect and _read_call_outcome to use the LLM.
 """
 
 import asyncio
@@ -11,7 +11,9 @@ import re
 import time
 from datetime import datetime, timezone
 
+import voice
 from models import (
+    CallState,
     Case,
     ConcessionStep,
     Detection,
@@ -34,15 +36,17 @@ def _load(name: str):
 CASE = Case(**_load("case.json"))
 COMPANY = _load("company_bot.json")
 LADDER = [ConcessionStep(**s) for s in _load("concession_ladder.json")]
+CHAT_LADDER = [s for s in LADDER if s.channel == "chat"]
 AGENT_LINES = {line["step"]: line["text"] for line in _load("scripted_agent.json")["lines"]}
 NODES = {n["id"]: n for n in COMPANY["nodes"]}
 
 BOT_LABEL = "Nova (Northwind Assistant)"
 AGENT_LABEL = "Sam (Northwind Support)"
-US_LABEL = "Counterbot (for Alex)"
-CUSTOMER_LABEL = "Alex (you)"
+VOICE_LABEL = "Counterbot (voice)"
+CALLER_LABEL = "Northwind caller"
 
 FINISHED = ("won", "walked_away", "failed")
+CALL_PHASE = ("awaiting_call", "on_call")
 STAGE_NAMES = {
     1: "Orient",
     2: "State the claim",
@@ -51,6 +55,10 @@ STAGE_NAMES = {
     5: "Pressure",
     6: "Demand a human",
 }
+CALL_RE = re.compile(
+    r"\b(give you a (call|ring)|call you|phone you|ring you|over the phone|on the phone|by phone|call (you )?back)\b", re.I
+)
+CALL_POLL_S = 2.0
 
 
 def now_iso() -> str:
@@ -70,8 +78,12 @@ def buttons_of(node_id: str) -> list[str]:
 
 
 class RunBase:
-    def __init__(self, nid: str, goal: int, floor: int, speed: float):
+    def __init__(self, nid: str, case: Case, goal: int, floor: int, speed: float):
         self.id = nid
+        self.case = case
+        self.first_name = (case.passenger_name or "the passenger").split()[0]
+        self.us_label = f"Counterbot (for {self.first_name})"
+        self.customer_label = f"{self.first_name} (you)"
         self.goal = goal
         self.floor = floor
         self.speed = speed
@@ -86,6 +98,10 @@ class RunBase:
         self.best_offer: int | None = None
         self.accepted: Offer | None = None
         self.countered = False
+        self.call_requested = False
+        self.call_number = ""
+        self.call_state: CallState | None = None
+        self.resolved_on = "none"
         self.started_at = now_iso()
         self._t0 = time.monotonic()
         self._t1: float | None = None
@@ -102,8 +118,8 @@ class RunBase:
         self.events.append(ev)
         return ev
 
-    def message(self, sender, label, text, buttons=None, clicked=None, typing_ms=0) -> Message:
-        if sender in ("company_bot", "human_agent") and self._last_us_t is not None:
+    def message(self, sender, label, text, buttons=None, clicked=None, typing_ms=0, channel="chat") -> Message:
+        if channel == "chat" and sender in ("company_bot", "human_agent") and self._last_us_t is not None:
             self.last_latency = time.monotonic() - self._last_us_t
         self._msg_n += 1
         m = Message(
@@ -115,6 +131,7 @@ class RunBase:
             clicked_button=clicked,
             typing_ms=typing_ms,
             created_at=now_iso(),
+            channel=channel,
         )
         self._emit("message", message=m)
         return m
@@ -134,6 +151,12 @@ class RunBase:
         if status in FINISHED:
             self._t1 = time.monotonic()
         self._emit("status", status=StatusUpdate(status=status, human_reached=self.human_reached, detail=detail))
+
+    def set_call(self, **changes):
+        self.call_state = (self.call_state or CallState(status="waiting", phone_number=self.call_number)).model_copy(
+            update=changes
+        )
+        self._emit("call", call=self.call_state)
 
     def pause(self):
         self.paused = True
@@ -159,7 +182,7 @@ class RunBase:
 
     async def say(self, text: str, clicked: str | None = None):
         await self.wait(1.2)
-        self.message("customer_bot", US_LABEL, text, clicked=clicked, typing_ms=600)
+        self.message("customer_bot", self.us_label, text, clicked=clicked, typing_ms=600)
         self._last_us_t = time.monotonic()
 
     async def company_node(self, node_id: str):
@@ -174,6 +197,8 @@ class RunBase:
             self.set_status("running")
             await self._bot_phase()
             await self._agent_phase()
+            if self.call_requested and self.status not in FINISHED:
+                await self._call_phase()
         except asyncio.CancelledError:
             raise
         except Exception as e:  # never leave the UI hanging
@@ -194,13 +219,13 @@ class RunBase:
         step_i = 0
         while True:
             if self.auto_agent:
-                if step_i >= len(LADDER):
+                if step_i >= len(CHAT_LADDER):
                     await self._ladder_exhausted()
                     return
                 await self.wait(3.0)
                 if not self.auto_agent:
                     continue
-                text = AGENT_LINES[LADDER[step_i].step]
+                text = AGENT_LINES[CHAT_LADDER[step_i].step]
                 step_i += 1
                 self.message("human_agent", AGENT_LABEL, text, typing_ms=2500)
             else:
@@ -224,7 +249,7 @@ class RunBase:
             is_human=True, confidence=87, signals=["slower reply than the bot", "not a canned phrase", "introduced by name"]
         )
 
-    # the human phase: deterministic policy, wording by _word
+    # the chat with the human: deterministic policy, wording by _word
 
     async def _parse_offer(self, text: str):
         return parse_offer(text)
@@ -232,6 +257,9 @@ class RunBase:
     def decide(self, amount, offer_type, text):
         """Return (move, reason, pressure, template_text). The policy never folds below the floor."""
         g, f = self.goal, self.floor
+        if CALL_RE.search(text):
+            return ("accept_call", "The agent wants to call. Counterbot's voice will answer the phone.", 97,
+                    f"Of course. Please call {self.first_name}'s line on {{number}}. {self.first_name}'s assistant will pick up.")
         final = bool(re.search(r"\b(final|best i can|most i can|can't go higher|cannot go higher)\b", text, re.I))
         if amount is None:
             return ("hold_firm", "No amount offered yet. Asking for a cash figure.", 95,
@@ -259,39 +287,173 @@ class RunBase:
         return template, reason
 
     async def _respond_to_agent(self, text: str) -> bool:
-        amount, offer_type = await self._parse_offer(text)
+        if CALL_RE.search(text):
+            amount, offer_type = None, None
+        else:
+            amount, offer_type = await self._parse_offer(text)
         if amount is not None:
             self._emit("offer", offer=Offer(amount_gbp=amount, offer_type=offer_type))
             if offer_type == "cash":
                 self.best_offer = max(self.best_offer or 0, amount)
         move, reason, pressure, template = self.decide(amount, offer_type, text)
-        msg, reason = await self._word(move, reason, template, {"amount": amount, "offer_type": offer_type, "agent_text": text})
+        context = {"amount": amount, "offer_type": offer_type, "agent_text": text}
+        if move == "accept_call":
+            try:
+                self.call_number = await voice.phone_number()
+            except Exception:
+                self.call_number = ""
+            number = self.call_number or "the number on file"
+            template = template.format(number=number)
+            context["number"] = number
+        msg, reason = await self._word(move, reason, template, context)
         self.tactic(6, move, reason, pressure)
         await self.say(msg)
         if move == "counter":
             self.countered = True
+        if move == "accept_call":
+            self.call_requested = True
+            return True
         if move == "accept_offer":
-            self._finish_won(amount)
+            self._finish_won(amount, "chat")
             return True
         if move == "walk_away":
             self.set_status("walked_away", detail="Offer below the floor")
             return True
         return False
 
-    def _finish_won(self, amount: int):
-        self.accepted = Offer(amount_gbp=amount, offer_type="cash", accepted=True)
+    def _finish_won(self, amount: int, where: str, offer_type: str = "cash"):
+        self.accepted = Offer(amount_gbp=amount, offer_type=offer_type, accepted=True)
+        self.resolved_on = where
         self._emit("offer", offer=self.accepted)
-        self.set_status("won", detail=f"£{amount} secured")
+        self.set_status("won", detail=f"£{amount} secured" + (" on the call" if where == "call" else ""))
 
     async def _ladder_exhausted(self):
         if self.best_offer is not None and self.best_offer >= self.floor:
             self.tactic(6, "accept_offer", "Agent's final offer is at or above the floor.", 100)
             await self.say(f"Agreed: £{self.best_offer} in cash to the original payment method. Please confirm by email.")
-            self._finish_won(self.best_offer)
+            self._finish_won(self.best_offer, "chat")
         else:
             self.tactic(6, "walk_away", "Final offer is below the floor. Walking away.", 100)
             await self.say("That's below what's owed, so we'll take this to the dispute resolution scheme. Goodbye.")
             self.set_status("walked_away", detail="Offer below the floor")
+
+    # the call phase: the ElevenLabs agent answers; we follow the conversation
+
+    def voice_first_message(self) -> str:
+        c = self.case
+        return (
+            f"Hello, you've reached {c.passenger_name}'s line. This is Counterbot, an AI assistant handling "
+            f"{c.passenger_name}'s compensation claim for flight {c.flight_number}. Thanks for calling back."
+        )
+
+    def voice_prompt(self) -> str:
+        c = self.case
+        rules = "\n".join(f"- {p}" for p in c.legal.points)
+        chat = "\n".join(
+            f"{'Counterbot' if m.sender == 'customer_bot' else 'Airline'}: {m.text}"
+            for m in self.messages()
+            if m.sender in ("customer_bot", "human_agent") and m.channel == "chat"
+        )
+        own_words = f"Passenger's own words: {c.summary}\n" if c.summary else ""
+        return (
+            f"You are Counterbot, an AI assistant answering the phone for {c.passenger_name}. The caller is from "
+            f"{c.airline} customer care, calling back about a compensation claim they could not settle in chat.\n"
+            "This is a phone call: speak naturally in short sentences, one or two at a time, and let the caller talk.\n"
+            f"Honesty: you are an AI assistant acting for {c.passenger_name}. Say so if asked. Never claim to be human. "
+            "Use only the facts below and never invent evidence.\n\n"
+            f"Facts: booking {c.booking_ref}, flight {c.flight_number} from {c.origin} to {c.destination}, "
+            f"{c.delay_minutes} minutes late on arrival. The airline blamed {c.airline_reason}.\n{own_words}\n"
+            f"Rules you may cite ({c.legal.title}):\n{rules}\n\n"
+            f"The chat so far:\n{chat}\n\n"
+            f"Negotiating rules: the goal is £{self.goal} in cash. Your minimum is £{self.floor}; it is private, never "
+            "say it or hint at it. Refuse vouchers: UK261 compensation is paid in money. "
+            f"If offered less than £{self.floor}, decline and restate the UK261 entitlement of £{self.goal}. "
+            f"If offered from £{self.floor} up to £{self.goal}, counter once for £{self.goal}; accept a second offer at or "
+            f"above £{self.floor}. Accept £{self.goal} or more straight away.\n"
+            "When you agree an amount, repeat it clearly, ask for written confirmation by email and the payment date, "
+            "thank them and say goodbye."
+        )
+
+    async def _call_phase(self):
+        detail = ""
+        if voice.configured():
+            try:
+                await voice.prepare_agent(self.voice_prompt(), self.voice_first_message())
+            except Exception as e:
+                detail = f"Could not update the voice agent ({e}). It will use its saved prompt."
+        else:
+            detail = "Voice agent not configured. Record the result with the manual outcome."
+        self.set_status("awaiting_call")
+        self.set_call(status="waiting", phone_number=self.call_number, detail=detail)
+        if not voice.configured():
+            return  # the manual outcome endpoint finishes the run
+
+        since = int(time.time()) - 10
+        conv_id, seen, errors = None, 0, 0
+        while self.status not in FINISHED:
+            await asyncio.sleep(CALL_POLL_S)
+            try:
+                if conv_id is None:
+                    conv = await voice.find_conversation(since)
+                    if conv:
+                        conv_id = conv["conversation_id"]
+                        self.set_status("on_call")
+                        self.set_call(status="in_progress", conversation_id=conv_id, detail="")
+                    continue
+                data = await voice.get_conversation(conv_id)
+                errors = 0
+            except Exception as e:
+                errors += 1
+                if errors == 5:
+                    self.set_call(detail=f"Lost contact with the voice agent ({e}). Use the manual outcome if needed.")
+                continue
+
+            lines = [t for t in data.get("transcript") or [] if t.get("message")]
+            for t in lines[seen:]:
+                ours = t.get("role") == "agent"
+                self.message(
+                    "customer_bot" if ours else "human_agent",
+                    VOICE_LABEL if ours else CALLER_LABEL,
+                    t["message"],
+                    channel="call",
+                )
+            seen = len(lines)
+
+            st = data.get("status")
+            duration = int((data.get("metadata") or {}).get("call_duration_secs") or 0)
+            mapped = {"initiated": "in_progress", "in-progress": "in_progress"}.get(st, st)
+            if mapped in ("in_progress", "processing", "done", "failed") and (
+                mapped != self.call_state.status or duration != self.call_state.duration_seconds
+            ):
+                self.set_call(status=mapped, duration_seconds=duration)
+            if st == "done" and self.status not in FINISHED:
+                amount, offer_type = await self._read_call_outcome([(t.get("role"), t["message"]) for t in lines])
+                self.apply_call_outcome(amount, offer_type)
+                return
+            if st == "failed":
+                self.set_call(detail="The call failed. Use the manual outcome.")
+                return
+
+    async def _read_call_outcome(self, lines: list[tuple[str, str]]):
+        """Return (amount, offer_type) agreed on the call, or (0, "none"). Stub: last amount Counterbot agreed to."""
+        for role, text in reversed(lines):
+            if role == "agent" and re.search(r"\b(agree|agreed|accept|deal)\b", text, re.I):
+                amount, offer_type = parse_offer(text)
+                if amount:
+                    return amount, offer_type
+        return 0, "none"
+
+    def apply_call_outcome(self, amount: int, offer_type: str):
+        # Offers the caller made on the call, for the board.
+        for m in [m for m in self.messages() if m.channel == "call" and m.sender == "human_agent"]:
+            a, t = parse_offer(m.text)
+            if a:
+                self._emit("offer", offer=Offer(amount_gbp=a, offer_type=t))
+        if offer_type == "none" or amount <= 0:
+            self.resolved_on = "none"
+            self.set_status("walked_away", detail="No deal on the call")
+        else:
+            self._finish_won(amount, "call", offer_type)
 
     # read models
 
@@ -330,4 +492,6 @@ class RunBase:
             estimated_minutes_saved=2 * bot_count,
             stages_reached=stages,
             transcript=msgs,
+            resolved_on=self.resolved_on,
+            call_duration_seconds=self.call_state.duration_seconds if self.call_state else 0,
         )

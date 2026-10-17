@@ -4,12 +4,12 @@ Plays the whole demo path as contract events with no LLM calls. Useful as a
 fallback if the LLM is down, and for frontend work.
 """
 
-from run_base import BOT_LABEL, CASE, COMPANY, RunBase
+from run_base import BOT_LABEL, COMPANY, RunBase
 
 
 class StubRun(RunBase):
     async def _bot_phase(self):
-        c = CASE
+        c = self.case
         await self.company_node("welcome")
         self.tactic(1, "click_button", "No compensation option in the menu. 'Something else' is the closest.", 5)
         await self.say("Something else", clicked="Something else")
