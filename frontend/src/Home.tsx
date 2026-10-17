@@ -215,12 +215,10 @@ function Hero() {
       <div className="mx-auto flex max-w-6xl flex-col items-center">
         <Reveal className="scene-card w-full max-w-3xl text-center">
           <div className="flex flex-wrap justify-center gap-2">
-            <Tag tone="dark">Wizard on call</Tag>
             <Tag tone="gold">★ Available 24/7</Tag>
           </div>
-          <h1 className="mt-5 text-5xl leading-[1.02] font-black tracking-tight text-slate-900 sm:text-7xl">
-            Press 1 to fight.
-            <span className="mt-1 block text-[#7a2a14]">Press 0 for a human.</span>
+          <h1 className="mt-5 text-6xl leading-[1.02] font-black tracking-tight text-slate-900 sm:text-8xl">
+            Wizard <span className="text-[#7a2a14]">on call.</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-snug font-bold text-slate-700 sm:text-xl">
             Companies hide behind bots. <span className="text-[#7a2a14]">Quillby fights them for you.</span>
