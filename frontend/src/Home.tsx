@@ -195,7 +195,7 @@ function HeroDemo() {
 
 function Nav() {
   return (
-    <header className="fixed inset-x-0 top-0 z-30 border-b-4 border-slate-900 bg-slate-900 text-slate-50">
+    <header className="fixed inset-x-0 top-0 z-30 border-b-4 border-[#1f4a45] bg-[#2f6f66] text-slate-50">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-2">
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2" aria-label="Counterbot, back to top">
           <CounterbotSprite scale={2} bob={false} />
