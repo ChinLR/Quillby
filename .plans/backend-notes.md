@@ -3,6 +3,13 @@
 Handoff notes for the frontend. Newest first. Keep each entry to a few lines.
 Anything that changes an endpoint or schema goes in contract.md too.
 
+## 2026-10-17 Shorter demo script (for the 2-minute limit)
+- The chat from tab open to the call request is now about 47 s (was about 120 s), 6 Counterbot lines instead of 8. `PACE` is 2.2 in `backend/run_base.py`; lines are capped at about 22 words.
+- The airline's bot hands over after 1 loop rejection, 1 rule citation and 1 human request (was 2/1/2), and answers free text with the apology trap then the refusal. The Pressure stage (5) is no longer reached in the normal run.
+- The agent's cheat sheet (`#/agent`) now has 4 steps: chat: voucher £75, then "say you'll call"; phone: £300, then £350. The £150 step is gone. Scripted Sam says the voucher line, then the call line.
+- The phone agent's greeting and replies are shorter. The cache was re-recorded for both paths (plain, and prefilled text with the three demo files).
+- The airline site footer links to the policy page: `/northwind/policy/`.
+
 ## 2026-10-17 Counterbot really reads files and the airline's policy (contract v3, additive)
 - `POST /api/intake` now takes `documents` (base64) and returns `case.evidence`, `case.policy_clauses`, `result.unread`. Run `npm run types`. Sample files: `demo-docs/` (an email, a boarding-pass image, a PDF receipt).
 - I already changed two frontend files so it works end to end, please keep these:

@@ -262,7 +262,7 @@ Each is validated with Pydantic, retried once, then replaced with a canned line 
 
 - `case.json`: one `Case` object (including `legal`). Hero case: Li Ren, `NW4821`, Northwind Air, Edinburgh to Faro, 235 minutes late, reason "operational reasons", goal 350, floor 300. The UK261 points must be verified against the official text before the demo.
 - `company_bot.json`: `{ nodes: [ { id, text, buttons: [ { label, next } ] } ], canned_phrases: [str], loop_replies: [str], handoff: { min_loop_rejections, min_rule_citations, min_human_requests }, fallback_lines: [str], handoff_message: str }`
-- `concession_ladder.json`: `list[ConcessionStep]`. (v2) Chat: step 1 voucher 75, step 2 cash 150, step 3 "call" (say you'll phone to sort it out). Call: step 4 cash 300, step 5 cash 350 (only if Counterbot holds firm).
+- `concession_ladder.json`: `list[ConcessionStep]`. (2-minute demo) Chat: step 1 voucher 75, step 2 "call" (say you'll phone to sort it out). Call: step 3 cash 300, step 4 cash 350 (only if Counterbot holds firm).
 - `scripted_agent.json`: `{ lines: [ { step, text } ] }` for the fallback agent (chat steps only; the call is always live).
 
 ## Frontend routes
