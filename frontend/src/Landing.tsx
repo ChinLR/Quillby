@@ -20,6 +20,21 @@ const PREFILL =
 
 const kb = (n: number) => (n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1000))} KB`)
 
+const MAX_FILES = 6
+const MAX_BYTES = 5 * 1024 * 1024
+
+// Files go to the backend as base64 so it can really read them.
+const toDocument = (f: File) =>
+  new Promise<{ name: string; mime: string; data_base64: string }>((resolve, reject) => {
+    const r = new FileReader()
+    r.onload = () => {
+      const url = String(r.result)
+      resolve({ name: f.name, mime: f.type, data_base64: url.slice(url.indexOf(',') + 1) })
+    }
+    r.onerror = () => reject(new Error(`Could not open ${f.name}`))
+    r.readAsDataURL(f)
+  })
+
 export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
   const [description, setDescription] = useState(PREFILL)
   const [files, setFiles] = useState<File[]>([])
@@ -30,14 +45,20 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
 
   const addFiles = (list: FileList | null) => {
     if (!list) return
-    setFiles((prev) => [...prev, ...Array.from(list).filter((f) => !prev.some((p) => p.name === f.name && p.size === f.size))])
+    // Copy now: the picker empties its live FileList right after this runs, before the state update would read it.
+    const picked = Array.from(list)
+    setFiles((prev) => [...prev, ...picked.filter((f) => !prev.some((p) => p.name === f.name && p.size === f.size))])
   }
 
   const analyse = async () => {
     setBusy(true)
     setError('')
     try {
-      const result = await submitIntake({ description: description.trim() })
+      if (files.length > MAX_FILES) throw new Error(`Please add at most ${MAX_FILES} files.`)
+      const tooBig = files.find((f) => f.size > MAX_BYTES)
+      if (tooBig) throw new Error(`${tooBig.name} is bigger than 5 MB.`)
+      const documents = await Promise.all(files.map(toDocument))
+      const result = await submitIntake({ description: description.trim(), documents })
       onReview({ result, description: description.trim(), files })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong')
@@ -47,7 +68,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
   }
 
   const tooShort = description.trim().length < 10
-  useAssistantLine(busy ? 'Reading what you wrote…' : 'Tell me what happened. Take your time, and add anything you have.', busy ? 'think' : 'idle')
+  useAssistantLine(busy ? (files.length ? 'Reading your documents…' : 'Reading what you wrote…') : 'Tell me what happened. Take your time, and add anything you have.', busy ? 'think' : 'idle')
 
   return (
     <div className="min-h-screen text-slate-900">

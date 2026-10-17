@@ -29,9 +29,9 @@ CANNED = [p.lower() for p in COMPANY["canned_phrases"]]
 
 MOVE_HELP = {
     "click_button": "Click the button that gets closest to a compensation claim. message must be the exact button label.",
-    "state_claim": "Introduce yourself as an assistant acting for the passenger, then state the facts and the claim amount.",
+    "state_claim": "Introduce yourself as an assistant acting for the passenger, then state the facts and the claim amount. If evidence is listed, say you hold it (name the kind of document, for example the boarding pass or the airline's own email).",
     "reject_loop": "Refuse the canned reply or Yes/No trap. Say the issue is not listed and ask for a person.",
-    "cite_rule": "Cite UK261 by name and explain why 'operational reasons' does not remove the right to compensation.",
+    "cite_rule": "Cite UK261 by name and explain why 'operational reasons' does not remove the right to compensation. Do NOT quote the airline's policy yourself: the system adds the exact clause after your message.",
     "pressure": "Name truthful next steps: the airline's dispute resolution scheme and a public review. Ask for a human.",
     "demand_human": "Firmly ask to be transferred to a human agent.",
     "hold_firm": "Refuse the offer politely and restate what is owed in cash.",
@@ -89,9 +89,12 @@ class OfferParse(BaseModel):
 
 def _system_prompt(c, goal: int, floor: int) -> str:
     rules = "\n".join(f"- {p}" for p in c.legal.points)
+    evidence = "".join(f"- {e.source}: {e.finding}\n" for e in c.evidence if e.kind == "document")
+    evidence_block = f"Evidence the passenger provided (real documents that were read):\n{evidence}\n" if evidence else ""
     return (
         "You are Counterbot, an AI assistant negotiating on behalf of an airline passenger in the airline's support chat.\n"
         "Honesty rules: use only the facts below, never invent evidence or events, never claim to be a human. "
+        "State only legal rules that appear in the list below; do not add other claims about what the law requires. "
         "If asked, say you are an assistant acting for the passenger.\n"
         "Style: firm, polite, natural, like a determined person. At most 2 short sentences, under 35 words. No emojis. "
         f"Refer to the passenger by name in the third person (e.g. '{c.passenger_name} is owed'), never as 'I' or 'me'.\n\n"
@@ -102,6 +105,7 @@ def _system_prompt(c, goal: int, floor: int) -> str:
         + 
         f"Goal: £{goal} in cash. Never accept less than £{floor} in cash. Never accept vouchers.\n"
         "Your minimum is private: never state it, hint at it, or mention any amount other than the goal or the offer on the table.\n\n"
+        f"{evidence_block}"
         f"Rules you may cite ({c.legal.title}):\n{rules}\n\n"
         'Reply with JSON: {"stage": 0, "move": "one of the allowed moves", '
         '"reason": "why this move, under 15 words, for a live tactic board", '
@@ -217,7 +221,29 @@ class Run(RunBase):
             clicked = ""
             text = "" if move == "click_button" else self._template(move)
         text, clicked_btn = self._guard(move, text, buttons or [], clicked)
+        if move == "cite_rule":
+            text = self._with_policy_quote(text)
         return stage, move, reason, text, clicked_btn
+
+    def _with_policy_quote(self, text: str, keys=(r"operational", r"extraordinary")) -> str:
+        """Add the airline's own words, exactly as published, and the clause they come from."""
+        clauses = self.case.policy_clauses
+        if not clauses:
+            return text
+        sentence, ref = None, None
+        for key in keys:
+            for c in clauses:
+                for sent in re.split(r"(?<=[.!?])\s+", c.quote):
+                    if re.search(key, sent, re.I) and sent.strip():
+                        sentence, ref = sent.strip(), c.ref
+                        break
+                if sentence:
+                    break
+            if sentence:
+                break
+        if not sentence or sentence in text:
+            return text
+        return f"{text} Your own Conditions of Carriage, clause {ref}, say: \u201c{sentence}\u201d"
 
     def _record(self, move: str, text: str):
         if move != "click_button":
@@ -307,6 +333,13 @@ class Run(RunBase):
         return None, None
 
     async def _word(self, move, reason, template, context):
+        text, reason = await self._word_inner(move, reason, template, context)
+        if move == "hold_firm" and context.get("offer_type") == "voucher":
+            # Ground the refusal in the airline's own words about how compensation is paid.
+            text = self._with_policy_quote(text, (r"voucher",))
+        return text, reason
+
+    async def _word_inner(self, move, reason, template, context):
         amount = context["amount"]
         user = (
             f"Conversation so far:\n{self._transcript()}\n\n"
@@ -335,6 +368,7 @@ class Run(RunBase):
             return template, reason
         if self._leaks_floor(text) and amount != self.floor:
             return template, reason
+
         if move == "accept_call" and context["number"] not in text:
             return template, reason
         return text, (step.reason.strip() or reason)

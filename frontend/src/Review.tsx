@@ -27,11 +27,13 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
           : ''
   const changed = goalN !== c.goal_gbp || floorN !== c.floor_gbp
   const docs = claim.files.length
+  const docEvidence = c.evidence.filter((e) => e.kind === 'document')
+  const policyEvidence = c.evidence.find((e) => e.kind === 'policy')
+  // Each step is something the agent really did: it read these files and fetched this policy.
   const steps = [
-    docs > 0 ? `Reading your ${docs} document${docs === 1 ? '' : 's'}` : 'Reading what you told us',
-    `Matching it to booking ${c.booking_ref}, flight ${c.flight_number}`,
-    `Checking the arrival time against the schedule`,
-    `Looking up ${c.airline}'s delay policy`,
+    docEvidence.length > 0 ? `Reading your ${docEvidence.length} document${docEvidence.length === 1 ? '' : 's'}` : 'Reading what you told us',
+    ...docEvidence.map((e) => `${e.source}: ${e.finding}`),
+    policyEvidence ? `${policyEvidence.source}: ${policyEvidence.finding}` : `Looking for ${c.airline}'s published policy`,
     'Checking the flight delay compensation rules',
     'Working out what you are owed',
   ]
@@ -99,7 +101,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
             <section className="flex flex-col gap-4 rounded-2xl bg-white p-6 ring-2 ring-emerald-500">
               <div>
                 <p className="text-sm font-medium text-emerald-700">Good news, {c.passenger_name.split(' ')[0]}</p>
-                <h2 className="font-serif text-4xl leading-tight font-medium tracking-tight">We found that your flight really was delayed.</h2>
+                <h2 className="font-serif text-4xl leading-tight font-medium tracking-tight">{docEvidence.length > 0 ? 'Your documents show your flight was delayed.' : 'Going by what you told us, your flight was delayed.'}</h2>
               </div>
               <p className="leading-relaxed text-slate-700">
                 Your {c.airline} flight {c.flight_number} from {c.origin} to {c.destination} was due at {time(c.scheduled_arrival)} and landed at{' '}
@@ -110,8 +112,45 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
               </p>
             </section>
 
+            {(docEvidence.length > 0 || claim.result.unread.length > 0) && (
+              <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+                <h3 className="text-sm font-semibold">What was read in your files</h3>
+                <ul className="flex flex-col gap-2 text-sm text-slate-600">
+                  {docEvidence.map((e) => (
+                    <li key={e.source} className="flex gap-2">
+                      <span className="text-emerald-600">✓</span>
+                      <span>
+                        <b className="text-slate-800">{e.source}</b>: {e.finding}
+                      </span>
+                    </li>
+                  ))}
+                  {claim.result.unread.map((u) => (
+                    <li key={u} className="flex gap-2 text-amber-800">
+                      <span>!</span>
+                      <span>Not read: {u}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {c.policy_clauses.length > 0 && (
+              <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+                <h3 className="text-sm font-semibold">What {c.airline}'s own policy says</h3>
+                <ul className="flex flex-col gap-2 text-sm text-slate-600">
+                  {c.policy_clauses.map((p) => (
+                    <li key={p.ref} className="flex gap-2">
+                      <span className="font-semibold text-slate-800">§{p.ref}</span>
+                      <span>“{p.quote}”</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-slate-400">Read from {c.airline}'s Conditions of Carriage. Quillby only quotes these words exactly.</p>
+              </section>
+            )}
+
             <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
-              <h3 className="text-sm font-semibold">What the policy says</h3>
+              <h3 className="text-sm font-semibold">What UK law says</h3>
               <ul className="flex flex-col gap-2 text-sm text-slate-600">
                 {c.legal.points.map((p) => (
                   <li key={p} className="flex gap-2">

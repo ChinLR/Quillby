@@ -3,6 +3,15 @@
 Handoff notes for the frontend. Newest first. Keep each entry to a few lines.
 Anything that changes an endpoint or schema goes in contract.md too.
 
+## 2026-10-17 Counterbot really reads files and the airline's policy (contract v3, additive)
+- `POST /api/intake` now takes `documents` (base64) and returns `case.evidence`, `case.policy_clauses`, `result.unread`. Run `npm run types`. Sample files: `demo-docs/` (an email, a boarding-pass image, a PDF receipt).
+- I already changed two frontend files so it works end to end, please keep these:
+  - `Landing.tsx`: sends the chosen files. **Bug fixed there:** the file picker cleared the input before React used the list, so picked files were silently lost. `addFiles` now copies the list first.
+  - `Review.tsx`: the checklist now shows what was really read, the headline is honest ("Your documents show..." vs "Going by what you told us..."), and two new cards show "What was read in your files" and the airline's own policy quotes.
+- `Review.tsx` still greets with the first word of the name, so "Li Ren" becomes "Good news, Li".
+- The airline's policy is fetched from `/northwind/policy/` (invented sample content, labelled as fictional on the page). The agent quotes it in chat (clause 9.4 for "operational reasons", clause 9.5 for vouchers), added word for word by the engine, never by the LLM.
+- New dependency: `pypdf` (`pip install -r backend/requirements.txt`).
+
 ## 2026-10-17 Fake airline website: http://localhost:8000/northwind/
 One static page (`airline-site/index.html`, served by the backend, no build step, spec in `.plans/airline-site-spec.md`). Its chat widget shows the run from the airline's side, line by line, with Nova's menu buttons, the "Sam joined the chat" handoff and the call banner. Read only: it polls `GET /api/company/inbox`, so there is no contract change. Open it in a second window next to the dashboard.
 

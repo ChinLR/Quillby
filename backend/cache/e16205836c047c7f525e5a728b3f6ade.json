@@ -1,0 +1,1 @@
+{"complaint_type": "flight_delay", "company": "Northwind", "passenger_name": "", "booking_ref": "", "flight_number": "", "origin": "Edinburgh", "destination": "Faro", "flight_date": "", "scheduled_arrival": "", "actual_arrival": "", "delay_minutes": 240, "airline_reason": "operational reasons", "amount_gbp": 0, "evidence": []}

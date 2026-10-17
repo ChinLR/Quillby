@@ -15,6 +15,17 @@ class Legal(BaseModel):
     disclaimer: str
 
 
+class Evidence(BaseModel):
+    source: str                       # a file name, or the policy's title
+    finding: str                      # what was found in it, in plain words
+    kind: Literal["document", "policy"] = "document"
+
+
+class PolicyClause(BaseModel):
+    ref: str                          # clause number, e.g. "9.4"
+    quote: str                        # exact text from the policy page
+
+
 class Case(BaseModel):
     id: str
     passenger_name: str
@@ -32,6 +43,9 @@ class Case(BaseModel):
     legal: Legal
     complaint_type: str = "flight_delay"
     summary: str = ""
+    evidence: list[Evidence] = []
+    policy_source: str = ""
+    policy_clauses: list[PolicyClause] = []
 
 
 class Message(BaseModel):
@@ -169,8 +183,15 @@ class Inbox(BaseModel):
     call_number: str
 
 
+class DocumentIn(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    mime: str = ""
+    data_base64: str
+
+
 class IntakeRequest(BaseModel):
     description: str = Field(min_length=10)
+    documents: list[DocumentIn] = []
     goal_gbp: Optional[int] = None
     floor_gbp: Optional[int] = None
 
@@ -179,6 +200,7 @@ class IntakeResult(BaseModel):
     supported: bool
     note: str
     case: Case
+    unread: list[str] = []            # files that could not be read, each with the reason
 
 
 class CallOutcomeBody(BaseModel):

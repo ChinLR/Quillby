@@ -93,7 +93,7 @@ async def post_intake(body: IntakeRequest):
     global current_case, current_supported
     if body.goal_gbp is not None and body.floor_gbp is not None and body.floor_gbp > body.goal_gbp:
         raise HTTPException(status_code=422, detail="Floor cannot be above the goal")
-    result = await intake.build_case(body.description, body.goal_gbp, body.floor_gbp)
+    result = await intake.build_case(body.description, body.goal_gbp, body.floor_gbp, body.documents)
     current_case, current_supported = result.case, result.supported
     return result
 

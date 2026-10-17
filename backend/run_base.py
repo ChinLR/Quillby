@@ -382,6 +382,14 @@ class RunBase:
             if m.sender in ("customer_bot", "human_agent") and m.channel == "chat"
         )
         own_words = f"Passenger's own words: {c.summary}\n" if c.summary else ""
+        ev = "".join(f"- {e.source}: {e.finding}\n" for e in c.evidence if e.kind == "document")
+        evidence_block = f"Evidence the passenger provided (real documents that were read):\n{ev}\n" if ev else ""
+        pol = "".join(f"- Clause {p.ref}: \u201c{p.quote}\u201d\n" for p in c.policy_clauses)
+        policy_block = (
+            f"{c.airline}'s own published Conditions of Carriage. You may quote these clauses exactly, with the clause number, and nothing else from the policy:\n{pol}\n"
+            if pol
+            else ""
+        )
         chat = chat or "(No chat history is available. The airline asked to continue by phone.)"
         return (
             f"You are Counterbot, an AI assistant answering the phone for {c.passenger_name}. The caller is from "
@@ -392,6 +400,7 @@ class RunBase:
             f"Facts: booking {c.booking_ref}, flight {c.flight_number} from {c.origin} to {c.destination}, "
             f"{c.delay_minutes} minutes late on arrival. The airline blamed {c.airline_reason}.\n{own_words}\n"
             f"Rules you may cite ({c.legal.title}):\n{rules}\n\n"
+            f"{evidence_block}{policy_block}"
             f"The chat so far:\n{chat}\n\n"
             f"Negotiating rules: the goal is £{self.goal} in cash. Your minimum is £{self.floor}; it is private, never "
             "say it or hint at it. Refuse vouchers: UK261 compensation is paid in money. "

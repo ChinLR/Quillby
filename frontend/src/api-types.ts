@@ -384,6 +384,21 @@ export interface components {
              * @default
              */
             summary: string;
+            /**
+             * Evidence
+             * @default []
+             */
+            evidence: components["schemas"]["Evidence"][];
+            /**
+             * Policy Source
+             * @default
+             */
+            policy_source: string;
+            /**
+             * Policy Clauses
+             * @default []
+             */
+            policy_clauses: components["schemas"]["PolicyClause"][];
         };
         /** ConcessionStep */
         ConcessionStep: {
@@ -416,6 +431,18 @@ export interface components {
              */
             signals: string[];
         };
+        /** DocumentIn */
+        DocumentIn: {
+            /** Name */
+            name: string;
+            /**
+             * Mime
+             * @default
+             */
+            mime: string;
+            /** Data Base64 */
+            data_base64: string;
+        };
         /** EventEnvelope */
         EventEnvelope: {
             /** Seq */
@@ -431,6 +458,19 @@ export interface components {
             offer?: components["schemas"]["Offer"] | null;
             status?: components["schemas"]["StatusUpdate"] | null;
             call?: components["schemas"]["CallState"] | null;
+        };
+        /** Evidence */
+        Evidence: {
+            /** Source */
+            source: string;
+            /** Finding */
+            finding: string;
+            /**
+             * Kind
+             * @default document
+             * @enum {string}
+             */
+            kind: "document" | "policy";
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -468,6 +508,11 @@ export interface components {
         IntakeRequest: {
             /** Description */
             description: string;
+            /**
+             * Documents
+             * @default []
+             */
+            documents: components["schemas"]["DocumentIn"][];
             /** Goal Gbp */
             goal_gbp?: number | null;
             /** Floor Gbp */
@@ -480,6 +525,11 @@ export interface components {
             /** Note */
             note: string;
             case: components["schemas"]["Case"];
+            /**
+             * Unread
+             * @default []
+             */
+            unread: string[];
         };
         /** Legal */
         Legal: {
@@ -567,6 +617,13 @@ export interface components {
         OkResponse: {
             /** Ok */
             ok: boolean;
+        };
+        /** PolicyClause */
+        PolicyClause: {
+            /** Ref */
+            ref: string;
+            /** Quote */
+            quote: string;
         };
         /** Report */
         Report: {

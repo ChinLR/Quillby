@@ -14,6 +14,17 @@ There is one active negotiation at a time. Starting a new one replaces the old o
 4. Chat layout rule for every screen: Counterbot (`customer_bot`, `customer`) on the right, the company (`company_bot`, `human_agent`) on the left, `system` centred.
 5. Show messages one at a time as they arrive (a typing indicator for `typing_ms` before each is fine). Never dump the history at once while a run is live.
 
+## v3 changes (2026-10-17), all additive
+
+Counterbot now really reads the customer's files and the airline's published policy.
+
+1. `IntakeRequest.documents`: up to 6 files, each `{ name, mime, data_base64 }`, at most 5 MB each. Read types: text, email (.eml), HTML, CSV/JSON, PDF with a text layer, Word (.docx), and images (read by a vision model). Anything else, or a file that cannot be read, is listed in `IntakeResult.unread` with the reason; it never fails the request.
+2. The facts found (booking reference, flight, route, date, scheduled and actual arrival, the airline's stated reason, the passenger's name) override the seeded demo values. If both arrival times are found, `delay_minutes` is computed from them.
+3. `Case.evidence`: one `{ source, finding, kind }` per file read (`kind: "document"`), plus one `kind: "policy"` entry for the policy read.
+4. `Case.policy_clauses` (`{ ref, quote }`) and `Case.policy_source`: the airline's own published clauses on delays and compensation, fetched over HTTP from its policy page (demo airline: `/northwind/policy/`). Every quote is checked to appear word for word on the page. Counterbot may quote these clauses, with the clause number, and nothing else from the policy.
+5. `IntakeResult.unread`: list of "file name: reason".
+6. UI rule: say only what was really read. With documents read, "Your documents show..."; without, "Going by what you told us...". Show `evidence` and `policy_clauses` on the review screen.
+
 ## Pydantic models
 
 ```
@@ -34,6 +45,18 @@ Case
   legal: Legal
   complaint_type: str             # (v2) "flight_delay" for the demo; other values come from intake
   summary: str                    # (v2) the customer's problem in their own words ("" for the seeded case)
+  evidence: list[Evidence]        # (v3) what was read: one per file, plus the policy
+  policy_source: str              # (v3) URL of the policy page that was read, "" if none
+  policy_clauses: list[PolicyClause]   # (v3) exact quotes with clause numbers
+
+Evidence                          # (v3)
+  source: str                     # a file name, or the policy's title
+  finding: str                    # what was found, in plain words
+  kind: "document" | "policy"
+
+PolicyClause                      # (v3)
+  ref: str                        # e.g. "9.4"
+  quote: str                      # exact text from the policy page
 
 Legal
   title: str                      # e.g. "UK261 delay compensation (summary)"
@@ -124,6 +147,12 @@ ConcessionStep                    # shown only in the human-agent window
 
 IntakeRequest                     # (v2)
   description: str                # the problem in the customer's own words (min 10 chars)
+  documents: list[DocumentIn]     # (v3) up to 6 files; [] if none
+
+DocumentIn                        # (v3)
+  name: str
+  mime: str                       # "" if unknown
+  data_base64: str                # the file bytes, base64 (no "data:" prefix)
   goal_gbp: int | None            # optional; default comes from the case
   floor_gbp: int | None
 
@@ -131,6 +160,7 @@ IntakeResult                      # (v2)
   supported: bool                 # false if the demo can't negotiate this complaint type
   note: str                       # shown under the form, e.g. "Demo negotiates flight delays only"
   case: Case                      # the case built from the description (becomes the current case)
+  unread: list[str]               # (v3) files that could not be read, each "name: reason"
 ```
 
 ## Endpoints

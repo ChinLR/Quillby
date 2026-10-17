@@ -1,0 +1,14 @@
+From: Northwind Air Customer Care <noreply@northwind-air.example>
+To: Li Ren
+Date: Sat, 12 Sep 2026 15:40
+Subject: Your flight NW182 to Faro was delayed (booking K7P2QD)
+
+Dear Li Ren,
+
+We are sorry that flight NW182 from Edinburgh to Faro arrived at 15:05 today,
+instead of the scheduled 11:10. The delay was caused by operational reasons.
+
+Your booking reference is K7P2QD.
+
+Kind regards,
+Northwind Air Customer Care
