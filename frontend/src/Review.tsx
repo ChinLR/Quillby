@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Claim } from './Landing'
+import type { CheckIns, Claim } from './Landing'
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const delay = (m: number) => `${Math.floor(m / 60)}h ${m % 60}m`
@@ -7,7 +7,8 @@ const STEP_MS = 1100
 
 // Page two: walks through the case while "reading" it, then says what the customer is likely owed.
 // Figures come from the intake result (case, goal, floor) and the policy summary the backend holds.
-export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: () => void; onBack: () => void }) {
+export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (checkIns: CheckIns) => void; onBack: () => void }) {
+  const [checkIns, setCheckIns] = useState<CheckIns>({ voucher: true, belowFloor: true })
   const c = claim.result.case
   const docs = claim.files.length
   const steps = [
@@ -103,11 +104,37 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: () =
               <p className="text-xs text-slate-400">{c.legal.disclaimer}</p>
             </section>
 
+            <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+              <div>
+                <h3 className="text-sm font-semibold">You stay in charge</h3>
+                <p className="text-sm text-slate-500">Counterbot will pause and ask you straight away if any of these happen. Anything else, it carries on.</p>
+              </div>
+              {(
+                [
+                  ['voucher', `${c.airline} offers a voucher instead of money`],
+                  ['belowFloor', `${c.airline} offers less than £${c.floor_gbp}`],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={checkIns[key]}
+                    onChange={(e) => setCheckIns({ ...checkIns, [key]: e.target.checked })}
+                    className="size-4 accent-indigo-600"
+                  />
+                  {label}
+                </label>
+              ))}
+              <p className="text-xs text-slate-400">
+                If {c.airline} asks to phone, or the talks end without a deal, we'll always tell you straight away.
+              </p>
+            </section>
+
             {claim.result.note && <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 ring-1 ring-amber-200">{claim.result.note}</p>}
 
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={onStart}
+                onClick={() => onStart(checkIns)}
                 disabled={!claim.result.supported}
                 className="rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
               >

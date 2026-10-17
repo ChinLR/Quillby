@@ -14,7 +14,6 @@ import {
 import type { Case, Report } from './api'
 import { CallPanel } from './CallPanel'
 import { Chat } from './Chat'
-import { ConcessionLadder } from './ConcessionLadder'
 import type { Claim } from './Landing'
 import { ReportCard } from './ReportCard'
 import { TacticBoard } from './TacticBoard'
@@ -117,6 +116,50 @@ export function Dashboard({
   const [agentDraft, setAgentDraft] = useState('')
   const n = useNegotiation(id, speed)
   const { inbox, refresh } = useInbox(!!id)
+
+  // Moments where Counterbot stops and asks the customer. Driven by the raw feed, so the run
+  // pauses the moment the offer arrives, not when the chat has finished catching up.
+  const [decision, setDecision] = useState<{ title: string; detail: string } | null>(null)
+  const seenOffers = useRef(0)
+  const floorGbp = caseData?.floor_gbp ?? 0
+  const check = claim?.checkIns
+  useEffect(() => {
+    seenOffers.current = 0
+    setDecision(null)
+  }, [id])
+  useEffect(() => {
+    if (!id) return
+    const fresh = n.rawOffers.slice(seenOffers.current)
+    seenOffers.current = n.rawOffers.length
+    for (const o of fresh) {
+      if (o.accepted) continue
+      const voucher = o.offer_type === 'voucher'
+      const low = o.offer_type === 'cash' && o.amount_gbp < floorGbp
+      if ((voucher && check?.voucher) || (low && check?.belowFloor)) {
+        setDecision({
+          title: voucher ? `${caseData?.airline ?? 'The airline'} offered a £${o.amount_gbp} voucher instead of money` : `${caseData?.airline ?? 'The airline'} offered £${o.amount_gbp} cash`,
+          detail: voucher
+            ? 'A voucher is not compensation. Do you want Counterbot to keep pushing for cash, or would you rather reply yourself?'
+            : `That is below your £${floorGbp} minimum. Do you want Counterbot to keep pushing, or would you rather reply yourself?`,
+        })
+        pauseNegotiation(id).catch(() => {})
+        break
+      }
+    }
+  }, [id, n.rawOffers, floorGbp, check, caseData?.airline])
+  const rawStatus = n.rawStatus?.status
+  const notice =
+    rawStatus === 'awaiting_call' || rawStatus === 'on_call'
+      ? { tone: 'sky', text: `${caseData?.airline ?? 'The airline'} wants to settle this over the phone. Counterbot will take the call, and you can follow it live below.` }
+      : rawStatus === 'walked_away' || rawStatus === 'failed'
+        ? { tone: 'rose', text: 'The talks ended without a deal. Nothing has been accepted on your behalf.' }
+        : null
+  useEffect(() => {
+    document.title = decision || (notice && notice.tone === 'rose') ? '● Needs you · Counterbot' : 'Counterbot'
+    return () => {
+      document.title = 'Counterbot'
+    }
+  }, [decision, notice])
 
   const status = n.status?.status ?? (id ? 'running' : null)
   const finished = status === 'won' || status === 'walked_away' || status === 'failed'
@@ -292,6 +335,39 @@ export function Dashboard({
         {report && <ReportCard report={report} />}
         {finished && !report && !error && <div className="h-28 animate-pulse rounded-2xl bg-emerald-100" />}
 
+        {decision && (
+          <div role="alert" className="flex flex-wrap items-center gap-4 rounded-2xl bg-amber-500 px-5 py-4 text-amber-950 shadow-lg shadow-amber-500/30">
+            <span className="relative flex size-3">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-950 opacity-60" />
+              <span className="relative inline-flex size-3 rounded-full bg-amber-950" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">Counterbot needs your say: {decision.title}</p>
+              <p className="text-sm">{decision.detail}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                disabled={busy}
+                onClick={() => run(async () => {
+                  setDecision(null)
+                  if (id) await resumeNegotiation(id)
+                })}
+                className="rounded-lg bg-amber-950 px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
+              >
+                Keep pushing
+              </button>
+              <button onClick={() => setDecision(null)} className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white">
+                I'll reply myself
+              </button>
+            </div>
+          </div>
+        )}
+        {notice && !decision && (
+          <p role="status" className={`rounded-2xl px-5 py-3 text-sm font-medium ring-1 ${notice.tone === 'rose' ? 'bg-rose-50 text-rose-800 ring-rose-200' : 'bg-sky-50 text-sky-900 ring-sky-200'}`}>
+            {notice.text}
+          </p>
+        )}
+
         {n.humanReached && !finished && (
           <div className="flex items-center gap-3 rounded-2xl bg-emerald-600 px-5 py-4 text-white shadow-lg shadow-emerald-600/20">
             <span className="relative flex size-3">
@@ -386,17 +462,6 @@ export function Dashboard({
               humanReached={n.humanReached}
               floor={caseData?.floor_gbp ?? 0}
               started={!!id}
-              ladder={
-                inbox && inbox.cheat_sheet.length > 0 ? (
-                  <section className="flex flex-col gap-2 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
-                    <div>
-                      <h3 className="text-xs font-semibold tracking-wide text-amber-900 uppercase">Agent concession ladder</h3>
-                      <p className="text-xs text-amber-800/70">What the airline agent is allowed to offer, in order.</p>
-                    </div>
-                    <ConcessionLadder steps={inbox.cheat_sheet} offers={n.offers} />
-                  </section>
-                ) : null
-              }
             />
           </section>
         </div>

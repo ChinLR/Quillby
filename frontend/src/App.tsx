@@ -43,7 +43,8 @@ export default function App() {
       <Review
         claim={claim}
         onBack={() => go('')}
-        onStart={() => {
+        onStart={(checkIns) => {
+          setClaim({ ...claim, checkIns })
           setAutoStart(true)
           go('#/run')
         }}

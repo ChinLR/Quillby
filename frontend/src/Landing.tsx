@@ -6,7 +6,11 @@ export type Claim = {
   result: IntakeResult
   description: string
   files: File[]
+  // When Counterbot should stop and ask the customer (set on the findings page).
+  checkIns?: CheckIns
 }
+
+export type CheckIns = { voucher: boolean; belowFloor: boolean }
 
 const PREFILL =
   'My Northwind flight from Edinburgh to Faro landed almost 4 hours late and they blamed operational reasons. I want my compensation.'

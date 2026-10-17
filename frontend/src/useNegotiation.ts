@@ -129,5 +129,17 @@ export function useNegotiation(id: string | null, speed = 1) {
     return null
   }, [events, shownCount])
 
-  return { ...derived, pending, catchingUp: shownCount < events.length, connection }
+  // Raw (not yet revealed) feed, so the page can react the moment something happens,
+  // even while the chat is still catching up at reading pace.
+  const raw = useMemo(() => {
+    const offers: Offer[] = []
+    let status: StatusUpdate | null = null
+    for (const e of events) {
+      if (e.offer) offers.push(e.offer)
+      if (e.status) status = e.status
+    }
+    return { rawOffers: offers, rawStatus: status }
+  }, [events])
+
+  return { ...derived, ...raw, pending, catchingUp: shownCount < events.length, connection }
 }
