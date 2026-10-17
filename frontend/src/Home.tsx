@@ -86,16 +86,16 @@ const Tag = ({ children, tone = 'white' }: { children: ReactNode; tone?: 'white'
 
 /* ---------- hero: a looping battle that shows the product working ---------- */
 
-type Line = { side: 'them' | 'us' | 'note'; who: string; text: string; stage: number; resist: number }
+type Line = { side: 'them' | 'us' | 'note'; who: string; text: string; stage: number; resist: number; spell?: string }
 const SCRIPT: Line[] = [
-  { side: 'them', who: 'Nova', text: "Hi! I'm Nova. What can I help you with today?", stage: 1, resist: 100 },
-  { side: 'us', who: 'Counterbot', text: 'Flight NW182 landed 3h 55m late. £350 is due under UK261.', stage: 2, resist: 90 },
-  { side: 'them', who: 'Nova', text: 'Sorry to hear that. Did that help? Yes / No', stage: 3, resist: 75 },
-  { side: 'us', who: 'Counterbot', text: "That didn't help, and I won't accept the loop. Transfer me to a human.", stage: 3, resist: 55 },
-  { side: 'us', who: 'Counterbot', text: "'Operational reasons' are not extraordinary circumstances. Escalate.", stage: 4, resist: 30 },
+  { side: 'them', who: 'Nova', text: "Hi! I'm Nova. What can I help you with today?", stage: 1, resist: 100, spell: 'Menu Charm!' },
+  { side: 'us', who: 'Counterbot', text: 'Flight NW182 landed 3h 55m late. £350 is due under UK261.', stage: 2, resist: 90, spell: 'Claimus!' },
+  { side: 'them', who: 'Nova', text: 'Sorry to hear that. Did that help? Yes / No', stage: 3, resist: 85, spell: 'Sorry-Sorry Hex!' },
+  { side: 'us', who: 'Counterbot', text: "That didn't help, and I won't accept the loop. Transfer me to a human.", stage: 3, resist: 62, spell: 'Loopus Rejectus!' },
+  { side: 'us', who: 'Counterbot', text: "'Operational reasons' are not extraordinary circumstances. Escalate.", stage: 4, resist: 32, spell: 'Rulus Citatum!' },
   { side: 'note', who: '', text: 'A human agent has joined', stage: 6, resist: 100 },
-  { side: 'them', who: 'Sam', text: 'As a goodwill gesture, I can offer a £75 voucher.', stage: 6, resist: 80 },
-  { side: 'us', who: 'Counterbot', text: 'No vouchers, thank you. UK261 compensation is paid in money: £350.', stage: 6, resist: 40 },
+  { side: 'them', who: 'Sam', text: 'As a goodwill gesture, I can offer a £75 voucher.', stage: 6, resist: 85, spell: 'Voucher Charm!' },
+  { side: 'us', who: 'Counterbot', text: 'No vouchers, thank you. UK261 compensation is paid in money: £350.', stage: 6, resist: 40, spell: 'Cashus Maxima!' },
   { side: 'note', who: '', text: 'Quest complete: £350 recovered', stage: 6, resist: 0 },
 ]
 const STAGES = ['Orient', 'State the claim', 'Reject the loop', 'Cite the rule', 'Pressure', 'Demand a human']
@@ -108,6 +108,48 @@ function Bar({ value, tone, label }: { value: number; tone: string; label: strin
         <div className={`h-full ${tone} transition-[width] duration-700 ease-linear`} style={{ width: `${value}%` }} />
       </div>
     </div>
+  )
+}
+
+// A wand held out sideways. `points` is the direction the tip faces; it tilts up when casting.
+function Wand({ points, casting, glow }: { points: 'left' | 'right'; casting: boolean; glow: string }) {
+  const left = points === 'left'
+  return (
+    <span
+      className="absolute"
+      style={{
+        [points]: -42,
+        bottom: 50,
+        width: 44,
+        height: 8,
+        transformOrigin: left ? '100% 50%' : '0% 50%',
+        transform: `rotate(${left ? (casting ? 14 : -6) : casting ? -14 : 6}deg)`,
+        transition: 'transform 0.15s steps(3)',
+      }}
+    >
+      <span className="absolute inset-0 border-2 border-slate-900 bg-[#8a5a3b]" />
+      <span
+        className="absolute -top-1 size-4 border-2 border-slate-900"
+        style={{ [points]: -6, background: glow, boxShadow: casting ? `0 0 0 5px ${glow}88` : 'none' }}
+      />
+    </span>
+  )
+}
+
+// A beam of spell light: a flowing pixel stripe between two points of the arena.
+function Beam({ style, core, glow, strong }: { style: React.CSSProperties; core: string; glow: string; strong: boolean }) {
+  return (
+    <span
+      className="px-beam pointer-events-none absolute"
+      style={{
+        bottom: 64,
+        height: strong ? 14 : 10,
+        background: `repeating-linear-gradient(90deg, ${core} 0 10px, ${glow} 10px 20px)`,
+        boxShadow: `0 0 0 3px ${glow}`,
+        transition: 'left 0.7s steps(10), right 0.7s steps(10), height 0.2s steps(2)',
+        ...style,
+      }}
+    />
   )
 }
 
@@ -140,7 +182,10 @@ function HeroDemo() {
   const next = SCRIPT[shown]
   const won = shown >= SCRIPT.length
   const human = cur.stage === 6
-  const lastUs = visible.at(-1)?.side === 'us'
+  const casterUs = visible.at(-1)?.side === 'us'
+  const casterThem = visible.at(-1)?.side === 'them'
+  // where the two beams meet, between the opponent's wand tip and Counterbot's (0.08 = about to be hit)
+  const clash = `calc(6% + 122px + ${(0.08 + 0.84 * (cur.resist / 100)).toFixed(3)} * (88% - 264px))`
 
   return (
     <div className="px-panel overflow-hidden">
@@ -149,21 +194,60 @@ function HeroDemo() {
         <span className={`font-pixel text-xs uppercase ${won ? 'text-emerald-200' : 'text-amber-300'}`}>{won ? 'Victory!' : `Level ${cur.stage}/6`}</span>
       </div>
 
-      <div className="relative bg-[#ecd9b0] px-4 pt-4 pb-0">
-        <div className="grid grid-cols-2 gap-4">
+      <div className="relative h-56 overflow-hidden bg-[#ecd9b0]">
+        <div className="absolute inset-x-0 top-3 grid grid-cols-2 gap-4 px-4">
           <Bar value={cur.resist} tone="bg-rose-500" label={human ? 'Sam · will to resist' : 'Nova · bot wall'} />
           <Bar value={100} tone="bg-emerald-500" label="Counterbot · you" />
         </div>
-        <div className="mt-3 flex h-36 items-end justify-between px-2 sm:px-6">
-          <div className={`${lastUs ? 'translate-x-1' : ''} transition-transform duration-200`}>{human ? <SamSprite scale={7} /> : <NovaSprite scale={7} />}</div>
-          <div className={`${lastUs ? '-translate-x-2' : ''} transition-transform duration-200`}>
-            <CounterbotSprite mood={won ? 'happy' : 'fight'} scale={5} />
-          </div>
+        <div className={`absolute inset-x-0 bottom-0 h-4 border-t-4 border-slate-900 ${GRASS}`} />
+
+        {/* the two spell beams meet at the clash point, which is shoved toward whoever is losing */}
+        <Beam style={{ left: clash, right: 'calc(6% + 142px)' }} core="#fffbe6" glow="#f4c93f" strong={casterUs || won} />
+        <Beam style={{ left: 'calc(6% + 122px)', right: `calc(100% - ${clash})` }} core="#ffe9e2" glow="#d9453a" strong={casterThem} />
+        <span className="pointer-events-none absolute" style={{ left: clash, bottom: 56, transform: 'translate(-50%, 0)', transition: 'left 0.7s steps(10)' }}>
+          <span key={shown} className="px-clash block size-11 bg-[#fff6c8]" />
+          <span className="px-clash absolute inset-0 rotate-45 bg-[#f4c93f] [animation-delay:-0.2s]" />
+          {[0, 1, 2, 3, 4, 5].map((k) => {
+            const ang = (k / 6) * Math.PI * 2
+            return (
+              <span
+                key={shown + '-' + k}
+                className="px-spark absolute top-1/2 left-1/2 text-base font-black text-amber-400"
+                style={{ ['--dx' as string]: `${Math.cos(ang) * 34}px`, ['--dy' as string]: `${Math.sin(ang) * 34}px` }}
+              >
+                ✦
+              </span>
+            )
+          })}
+        </span>
+
+        {/* opponent, left */}
+        <div
+          className={`absolute bottom-4 left-[6%] ${won ? 'animate-pulse' : ''}`}
+          style={{ transform: won ? 'translateX(-14px)' : casterThem ? 'translateX(3px)' : undefined, transition: 'transform 0.2s steps(3)' }}
+        >
+          {casterThem && cur.spell && (
+            <span key={shown} className="px-panel animate-pop-in absolute bottom-full left-0 mb-2 w-max px-2 py-1 text-xs font-extrabold text-slate-900">
+              {cur.spell}
+            </span>
+          )}
+          {human ? <SamSprite scale={5} /> : <NovaSprite scale={5} />}
+          <Wand points="right" casting={casterThem} glow="#d9453a" />
         </div>
-        <div className={`-mx-4 h-4 border-t-4 border-slate-900 ${GRASS}`} />
+
+        {/* Counterbot, right */}
+        <div className="absolute right-[6%] bottom-4" style={{ transform: casterUs ? 'translateX(-3px)' : undefined, transition: 'transform 0.2s steps(3)' }}>
+          {casterUs && cur.spell && (
+            <span key={shown} className="px-panel animate-pop-in absolute right-0 bottom-full mb-2 w-max px-2 py-1 text-xs font-extrabold text-slate-900">
+              {cur.spell}
+            </span>
+          )}
+          <CounterbotSprite mood={won ? 'happy' : 'duel'} scale={5} />
+          {!won && <Wand points="left" casting={casterUs} glow="#f4c93f" />}
+        </div>
       </div>
 
-      <div className="flex h-44 flex-col justify-end gap-2 overflow-hidden border-t-4 border-slate-900 bg-slate-900 p-3">
+      <div className="flex h-36 flex-col justify-end gap-2 overflow-hidden border-t-4 border-slate-900 bg-slate-900 p-3">
         {visible.slice(-3).map((l, i) =>
           l.side === 'note' ? (
             <p key={shown + '-' + i} className={`animate-pop-in font-pixel text-center text-xs uppercase ${l.text.startsWith('Quest') ? 'text-emerald-200' : 'text-amber-300'}`}>
@@ -247,9 +331,6 @@ function Hero() {
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <button onClick={startClaim} className="px-btn font-pixel bg-amber-300 px-6 py-4 text-base text-slate-900 uppercase">
                 ▶ Start your claim
-              </button>
-              <button onClick={() => scrollTo('how')} className="px-btn font-pixel bg-white px-5 py-4 text-base text-slate-900 uppercase">
-                How to play
               </button>
             </div>
           </Reveal>

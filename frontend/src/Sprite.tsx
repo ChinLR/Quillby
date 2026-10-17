@@ -65,7 +65,7 @@ const PAL = {
 
 /* ---------- Counterbot: the customer's assistant ---------- */
 
-export type Mood = 'idle' | 'think' | 'fight' | 'happy' | 'sad'
+export type Mood = 'idle' | 'think' | 'fight' | 'duel' | 'happy' | 'sad'
 
 // Counterbot is a wizard: blue robe and pointed hat with a gold star, white beard, a staff,
 // and a sword that comes out when he fights. 20 x 24 pixels.
@@ -127,6 +127,15 @@ function wizardRows(blink: boolean, mood: Mood, wave: number): string[] {
     put(18, 16, 'n')
     put(18, 17, 'y')
     // furrowed brows
+    put(6, 11, 'k')
+    put(7, 11, 'k')
+    put(12, 11, 'k')
+    put(13, 11, 'k')
+  } else if (mood === 'duel') {
+    // wand duel: no staff, wand arm out to the left (the wand itself is drawn by the scene)
+    put(1, 15, 's')
+    put(1, 16, 's')
+    put(0, 15, 's')
     put(6, 11, 'k')
     put(7, 11, 'k')
     put(12, 11, 'k')
