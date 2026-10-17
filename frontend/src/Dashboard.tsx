@@ -115,10 +115,9 @@ export function Dashboard({
   const [report, setReport] = useState<Report | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [speed, setSpeed] = useState(1)
   const [draft, setDraft] = useState('')
   const [agentDraft, setAgentDraft] = useState('')
-  const n = useNegotiation(id, speed)
+  const n = useNegotiation(id)
   const { inbox, refresh } = useInbox(!!id)
 
   // Quillby keeps negotiating on its own. Two kinds of alert, both driven by the raw feed so the
@@ -278,7 +277,7 @@ export function Dashboard({
 
   const start = () =>
     run(async () => {
-      const s = await startNegotiation({ speed, goal_gbp: claim?.goal, floor_gbp: claim?.floor })
+      const s = await startNegotiation({ speed: 1, goal_gbp: claim?.goal, floor_gbp: claim?.floor })
       store.set(s.id)
       setId(s.id)
     })
@@ -360,16 +359,9 @@ export function Dashboard({
 
         <div className="flex flex-wrap items-center gap-2">
           {!id || finished ? (
-            <>
-              <button onClick={start} disabled={busy} className="px-btn font-pixel bg-amber-300 px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
-                {finished ? 'Run again' : 'Send in Quillby'}
-              </button>
-              <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm" aria-label="Speed">
-                <option value={1}>1× speed</option>
-                <option value={2}>2× speed</option>
-                <option value={3}>3× speed</option>
-              </select>
-            </>
+            <button onClick={start} disabled={busy} className="px-btn font-pixel bg-amber-300 px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
+              {finished ? 'Run again' : 'Send in Quillby'}
+            </button>
           ) : status === 'paused' ? (
             <button onClick={() => run(() => resumeNegotiation(id))} disabled={busy} className="px-btn font-pixel bg-amber-300 px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
               Resume autopilot
