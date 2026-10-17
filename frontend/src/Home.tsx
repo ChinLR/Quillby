@@ -87,16 +87,57 @@ const Tag = ({ children, tone = 'white' }: { children: ReactNode; tone?: 'white'
 /* ---------- hero: a looping battle that shows the product working ---------- */
 
 type Line = { side: 'them' | 'us' | 'note'; who: string; text: string; stage: number; resist: number; spell?: string }
-const SCRIPT: Line[] = [
-  { side: 'them', who: 'Nova', text: "Hi! I'm Nova. What can I help you with today?", stage: 1, resist: 100, spell: 'Menu Charm!' },
-  { side: 'us', who: 'Counterbot', text: 'Flight NW182 landed 3h 55m late. £350 is due under UK261.', stage: 2, resist: 90, spell: 'Claimus!' },
-  { side: 'them', who: 'Nova', text: 'Sorry to hear that. Did that help? Yes / No', stage: 3, resist: 85, spell: 'Sorry-Sorry Hex!' },
-  { side: 'us', who: 'Counterbot', text: "That didn't help, and I won't accept the loop. Transfer me to a human.", stage: 3, resist: 62, spell: 'Loopus Rejectus!' },
-  { side: 'us', who: 'Counterbot', text: "'Operational reasons' are not extraordinary circumstances. Escalate.", stage: 4, resist: 32, spell: 'Rulus Citatum!' },
-  { side: 'note', who: '', text: 'A human agent has joined', stage: 6, resist: 100 },
-  { side: 'them', who: 'Sam', text: 'As a goodwill gesture, I can offer a £75 voucher.', stage: 6, resist: 85, spell: 'Voucher Charm!' },
-  { side: 'us', who: 'Counterbot', text: 'No vouchers, thank you. UK261 compensation is paid in money: £350.', stage: 6, resist: 40, spell: 'Cashus Maxima!' },
-  { side: 'note', who: '', text: 'Quest complete: £350 recovered', stage: 6, resist: 0 },
+type Scenario = { company: string; bot: string; human: string; lines: Line[] }
+// Other examples of what Counterbot can do (none of them is the flight-delay demo case).
+const RESIST = [100, 90, 85, 62, 32, 100, 85, 40, 0]
+const STAGE = [1, 2, 3, 3, 4, 6, 6, 6, 6]
+const duel = (company: string, bot: string, human: string, rows: [Line['side'], string, string?][]): Scenario => ({
+  company,
+  bot,
+  human,
+  lines: rows.map(([side, text, spell], i) => ({
+    side,
+    who: side === 'us' ? 'Counterbot' : i < 5 ? bot : human,
+    text,
+    stage: STAGE[i],
+    resist: RESIST[i],
+    spell,
+  })),
+})
+const SCENARIOS: Scenario[] = [
+  duel('Zenfit Gym', 'Gigi', 'Priya', [
+    ['them', "Hi! I'm Gigi from Zenfit. How can I help?", 'Menu Charm!'],
+    ['us', "I'm cancelling Alex's membership. The 12-month minimum term ended in March.", 'Cancelus!'],
+    ['them', "We'd hate to see you go! Would you like a free week instead?", 'Retention Hex!'],
+    ['us', 'No, thank you. Please process the cancellation, not an offer.', 'Offerus Rejectus!'],
+    ['us', 'Your own terms say it rolls monthly after the minimum term. Please bring in a person.', 'Termus Citatum!'],
+    ['note', 'A human agent has joined'],
+    ['them', 'I can pause the membership for two months, free of charge.', 'Pause Charm!'],
+    ['us', "A pause isn't a cancellation. Please confirm it today, with no further charges.", 'Cancellus Maxima!'],
+    ['note', 'Quest complete: membership cancelled'],
+  ]),
+  duel('Voltmart', 'Volt', 'Dan', [
+    ['them', 'Welcome to Voltmart support! Please choose a topic.', 'Menu Charm!'],
+    ['us', "Alex's laptop stopped working 12 days after delivery. Alex would like a full refund.", 'Refundus!'],
+    ['them', 'Have you tried turning it off and on again?', 'Reboot Hex!'],
+    ['us', "Yes. It's faulty and still within 30 days. I won't accept a troubleshooting loop.", 'Loopus Rejectus!'],
+    ['us', 'Under the Consumer Rights Act, faulty goods can be rejected within 30 days. Please escalate.', 'Rightus Citatum!'],
+    ['note', 'A human agent has joined'],
+    ['them', 'I can offer a £50 store credit as a gesture of goodwill.', 'Credit Charm!'],
+    ['us', "Store credit isn't a refund. Alex is entitled to the full price back.", 'Refundus Maxima!'],
+    ['note', 'Quest complete: full refund issued'],
+  ]),
+  duel('BrightNet', 'Beam', 'Maya', [
+    ['them', "Hi, I'm Beam! Have you restarted your router today?", 'Reboot Hex!'],
+    ['us', "Alex's speeds are 12 Mbps, far below the minimum guaranteed in the contract.", 'Speedus!'],
+    ['them', 'Speeds can vary. Is there anything else I can help with? Yes / No', 'Shrug Hex!'],
+    ['us', "That didn't help, and I won't accept a loop. Please bring in a human.", 'Loopus Rejectus!'],
+    ['us', "Ofcom's rules let Alex leave without penalty when speeds fall below that minimum. Escalate.", 'Rulus Citatum!'],
+    ['note', 'A human agent has joined'],
+    ['them', 'I can offer a £5 bill credit while we investigate.', 'Credit Charm!'],
+    ['us', 'No, thank you. Alex would like to leave the contract with no early-exit fee.', 'Exitus Maxima!'],
+    ['note', 'Quest complete: penalty-free exit'],
+  ]),
 ]
 const STAGES = ['Orient', 'State the claim', 'Reject the loop', 'Cite the rule', 'Pressure', 'Demand a human']
 
@@ -154,18 +195,24 @@ function Beam({ style, core, glow, strong }: { style: React.CSSProperties; core:
 }
 
 function HeroDemo() {
+  const [scene, setScene] = useState(0)
   const [shown, setShown] = useState(1)
   const [typing, setTyping] = useState(false)
   const reduced = prefersReducedMotion()
+  const sc = SCENARIOS[scene]
+  const lines = sc.lines
 
   useEffect(() => {
     if (reduced) {
-      setShown(SCRIPT.length)
+      setShown(lines.length)
       return
     }
     let t: number
-    if (shown >= SCRIPT.length) {
-      t = window.setTimeout(() => setShown(1), 4200)
+    if (shown >= lines.length) {
+      t = window.setTimeout(() => {
+        setShown(1)
+        setScene((i) => (i + 1) % SCENARIOS.length)
+      }, 4200)
     } else if (typing) {
       t = window.setTimeout(() => {
         setTyping(false)
@@ -175,12 +222,12 @@ function HeroDemo() {
       t = window.setTimeout(() => setTyping(true), 1000)
     }
     return () => window.clearTimeout(t)
-  }, [shown, typing, reduced])
+  }, [shown, typing, reduced, lines.length])
 
-  const visible = SCRIPT.slice(0, shown)
-  const cur = visible.at(-1) ?? SCRIPT[0]
-  const next = SCRIPT[shown]
-  const won = shown >= SCRIPT.length
+  const visible = lines.slice(0, shown)
+  const cur = visible.at(-1) ?? lines[0]
+  const next = lines[shown]
+  const won = shown >= lines.length
   const human = cur.stage === 6
   const casterUs = visible.at(-1)?.side === 'us'
   const casterThem = visible.at(-1)?.side === 'them'
@@ -190,13 +237,13 @@ function HeroDemo() {
   return (
     <div className="px-panel overflow-hidden">
       <div className="flex items-center justify-between border-b-4 border-slate-900 bg-slate-900 px-4 py-2">
-        <span className="font-pixel text-xs text-amber-300 uppercase">Battle · Northwind Air support</span>
+        <span className="font-pixel text-xs text-amber-300 uppercase">Battle · {sc.company} support</span>
         <span className={`font-pixel text-xs uppercase ${won ? 'text-emerald-200' : 'text-amber-300'}`}>{won ? 'Victory!' : `Level ${cur.stage}/6`}</span>
       </div>
 
       <div className="relative h-56 overflow-hidden bg-[#ecd9b0]">
         <div className="absolute inset-x-0 top-3 grid grid-cols-2 gap-4 px-4">
-          <Bar value={cur.resist} tone="bg-rose-500" label={human ? 'Sam · will to resist' : 'Nova · bot wall'} />
+          <Bar value={cur.resist} tone="bg-rose-500" label={human ? `${sc.human} · will to resist` : `${sc.bot} · bot wall`} />
           <Bar value={100} tone="bg-emerald-500" label="Counterbot · you" />
         </div>
         <div className={`absolute inset-x-0 bottom-0 h-4 border-t-4 border-slate-900 ${GRASS}`} />
@@ -324,7 +371,7 @@ function Hero() {
           <Reveal delay={160}>
             <p className="scene-text-sm mt-6 max-w-xl text-lg leading-relaxed font-semibold">
               Meet Counterbot, the wizard who stays by your side. He reads the small print, fights the company's bot, brings a real person to the table and negotiates
-              until you are paid.
+              until you are satisfied.
             </p>
           </Reveal>
           <Reveal delay={240}>
@@ -333,20 +380,6 @@ function Hero() {
                 ▶ Start your claim
               </button>
             </div>
-          </Reveal>
-          <Reveal delay={320}>
-            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-3">
-              {[
-                ['£350', 'loot in our demo case'],
-                ['6', 'levels to climb'],
-                ['~1 min', 'of bot time per run'],
-              ].map(([n, l]) => (
-                <div key={l} className="border-[3px] border-slate-900 bg-white px-3 py-2">
-                  <dt className="text-2xl font-extrabold text-slate-900 tabular-nums">{n}</dt>
-                  <dd className="mt-0.5 text-xs leading-tight font-semibold text-slate-600">{l}</dd>
-                </div>
-              ))}
-            </dl>
           </Reveal>
         </div>
         <Reveal delay={200}>
@@ -370,7 +403,7 @@ function Problem() {
         <Reveal className="scene-card max-w-3xl">
           <Tag tone="gold">The problem</Tag>
           <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">They put a bot between you and a human, on purpose.</h2>
-          <p className="scene-text-sm mt-4 text-lg font-semibold">Most players quit long before the company has to pay. Counterbot is built not to.</p>
+          <p className="scene-text-sm mt-4 text-lg font-semibold">Most players quit long before they get what they want. Counterbot is built not to.</p>
         </Reveal>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           <Reveal>
