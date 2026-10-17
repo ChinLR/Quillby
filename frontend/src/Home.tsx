@@ -240,7 +240,7 @@ function Hero() {
 const STEPS: [string, string, 'book' | 'compass' | 'shield'][] = [
   ['Tell us what happened', 'In your own words. Add any receipts.', 'book'],
   ['Quillby reads the policy', 'He works out what you are owed, and shows you.', 'compass'],
-  ['He fights. You get paid.', 'Their bot first, then their human, until you are satisfied.', 'shield'],
+  ['He fights for you.', 'Their bot first, then their human, until you are satisfied.', 'shield'],
 ]
 
 function HowItWorks() {
@@ -285,7 +285,7 @@ export function Home() {
       <footer className="border-t-4 border-slate-900 bg-slate-900 py-6 pb-24 text-slate-300 sm:pb-6">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 text-xs font-medium">
           <p>
-            <span className="font-pixel text-sm text-slate-50 uppercase">Counterbot</span> · Built at the Edinburgh AI Hackathon
+            <span className="font-pixel text-sm text-slate-50 uppercase">Counterbot</span>
           </p>
           <p>Not legal advice. Please check policy summaries against the official text.</p>
         </div>
