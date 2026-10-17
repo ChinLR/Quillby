@@ -42,7 +42,7 @@ NODES = {n["id"]: n for n in COMPANY["nodes"]}
 
 BOT_LABEL = "Nova (Northwind Assistant)"
 AGENT_LABEL = "Sam (Northwind Support)"
-VOICE_LABEL = "Counterbot (voice)"
+VOICE_LABEL = "Quillby (voice)"
 CALLER_LABEL = "Northwind caller"
 
 TAG_RE = re.compile(r"\[[^\]]{1,30}\]\s*")  # voice-model tags like [happy] leak into transcripts
@@ -104,7 +104,7 @@ class RunBase:
         self.id = nid
         self.case = case
         self.first_name = case.passenger_name or "the passenger"  # used in labels and wording
-        self.us_label = f"Counterbot (for {self.first_name})"
+        self.us_label = f"Quillby (for {self.first_name})"
         self.customer_label = f"{self.first_name} (you)"
         self.goal = goal
         self.floor = floor
@@ -283,7 +283,7 @@ class RunBase:
         """Return (move, reason, pressure, template_text). The policy never folds below the floor."""
         g, f = self.goal, self.floor
         if CALL_RE.search(text):
-            return ("accept_call", "The agent wants to call. Counterbot's voice will answer the phone.", 97,
+            return ("accept_call", "The agent wants to call. Quillby's voice will answer the phone.", 97,
                     f"Of course. Please call {self.first_name}'s line on {{number}}. {self.first_name}'s assistant will pick up.")
         final = bool(re.search(r"\b(final|best i can|most i can|can't go higher|cannot go higher)\b", text, re.I))
         if amount is None:
@@ -369,7 +369,7 @@ class RunBase:
     def voice_first_message(self) -> str:
         c = self.case
         return (
-            f"Hello, this is Counterbot, an AI assistant handling {c.passenger_name}'s compensation claim "
+            f"Hello, this is Quillby, an AI assistant handling {c.passenger_name}'s compensation claim "
             f"for flight {c.flight_number}."
         )
 
@@ -377,7 +377,7 @@ class RunBase:
         c = self.case
         rules = "\n".join(f"- {p}" for p in c.legal.points)
         chat = "\n".join(
-            f"{'Counterbot' if m.sender == 'customer_bot' else 'Airline'}: {m.text}"
+            f"{'Quillby' if m.sender == 'customer_bot' else 'Airline'}: {m.text}"
             for m in self.messages()
             if m.sender in ("customer_bot", "human_agent") and m.channel == "chat"
         )
@@ -392,7 +392,7 @@ class RunBase:
         )
         chat = chat or "(No chat history is available. The airline asked to continue by phone.)"
         return (
-            f"You are Counterbot, an AI assistant answering the phone for {c.passenger_name}. The caller is from "
+            f"You are Quillby, an AI assistant answering the phone for {c.passenger_name}. The caller is from "
             f"{c.airline} customer care, calling back about a compensation claim they could not settle in chat.\n"
             "This is a phone call: speak naturally in short sentences, one or two at a time, and let the caller talk.\n"
             f"Honesty: you are an AI assistant acting for {c.passenger_name}. Say so if asked. Never claim to be human. "

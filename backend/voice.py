@@ -1,4 +1,4 @@
-"""ElevenLabs voice agent: Counterbot answers the airline's call on its Twilio number.
+"""ElevenLabs voice agent: Quillby answers the airline's call on its Twilio number.
 
 The only module that talks to ElevenLabs. Needs ELEVENLABS_API_KEY and
 ELEVENLABS_AGENT_ID in .env; COUNTERBOT_PHONE_NUMBER is optional (otherwise

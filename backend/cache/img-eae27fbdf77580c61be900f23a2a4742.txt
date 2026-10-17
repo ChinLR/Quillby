@@ -1,5 +1,6 @@
-**Transcription**
+**Transcription (exact text):**
 
+```
 Northwind Air — BOARDING PASS
 
 Passenger: REN / LI MR
@@ -9,18 +10,19 @@ Flight: NW182   Date: 12 SEP 2026
 From: Edinburgh (EDI)   To: Faro (FAO)
 
 Scheduled departure: 08:15   Seat: 14C   Booking: K7P2QD
+```
 
-**Facts shown**
+**Facts shown:**
 
 - Airline / carrier: Northwind Air
 - Document type: Boarding Pass
-- Passenger name: REN / LI MR (surname "REN", given name "LI", title "MR")
+- Passenger name: REN / LI MR (surname REN, given name LI, title MR)
 - Flight number: NW182
-- Flight date: 12 SEP 2026
-- Origin (From): Edinburgh, airport code EDI
-- Destination (To): Faro, airport code FAO
+- Date: 12 SEP 2026
+- Origin (From): Edinburgh (EDI)
+- Destination (To): Faro (FAO)
 - Scheduled departure time: 08:15
 - Seat: 14C
 - Booking reference: K7P2QD
 
-No monetary amounts, arrival time, gate, terminal, or other reference numbers are present in the image.
+No monetary amounts, ticket numbers, or other reference numbers are present in the image. No arrival time, gate, or other details are shown.

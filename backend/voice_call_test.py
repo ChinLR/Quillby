@@ -1,4 +1,4 @@
-"""Test the reverse call: Counterbot phones the number in COUNTERBOT_TEST_TO (your .env).
+"""Test the reverse call: Quillby phones the number in COUNTERBOT_TEST_TO (your .env).
 
 Run from the repo root: .venv/bin/python backend/voice_call_test.py
 Your phone will ring. The number must be a verified caller ID in Twilio while the account is a trial.
@@ -33,10 +33,10 @@ async def main() -> int:
         res = await voice.start_outbound_call(
             to,
             prompt=(
-                "You are Counterbot, an AI assistant. This is a short test call. Greet the person, ask them to say "
+                "You are Quillby, an AI assistant. This is a short test call. Greet the person, ask them to say "
                 "something, repeat back what you heard in one sentence, then say goodbye and end the call."
             ),
-            first_message="Hi, this is Counterbot, a test call. Can you hear me clearly? Say something and I'll repeat it back.",
+            first_message="Hi, this is Quillby, a test call. Can you hear me clearly? Say something and I'll repeat it back.",
         )
     except Exception as e:
         print(f"FAIL could not start the call: {e}")
