@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useAssistantLine } from './assistant'
-import { Cloud, CounterbotSprite, Icon, NovaSprite, SamSprite } from './Sprite'
+import { CounterbotSprite, Icon, NovaSprite, SamSprite } from './Sprite'
 
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -83,8 +83,6 @@ const Tag = ({ children, tone = 'white' }: { children: ReactNode; tone?: 'white'
     {children}
   </span>
 )
-
-const titleShadow = { textShadow: '3px 3px 0 #fbf4e4' }
 
 /* ---------- hero: a looping battle that shows the product working ---------- */
 
@@ -225,9 +223,6 @@ function Nav() {
 function Hero() {
   return (
     <section className="relative overflow-hidden pt-24 md:pt-28">
-      <Cloud className="px-cloud absolute top-24 left-0 opacity-90" scale={7} />
-      <Cloud className="px-cloud absolute top-48 left-0 opacity-80 [animation-delay:-28s]" scale={5} />
-      <Cloud className="px-cloud absolute top-10 left-0 opacity-90 [animation-delay:-45s]" scale={4} />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
           <Reveal>
@@ -237,13 +232,13 @@ function Hero() {
             </div>
           </Reveal>
           <Reveal delay={80}>
-            <h1 className="mt-6 text-4xl leading-[1.08] font-extrabold text-slate-900 sm:text-5xl lg:text-6xl" style={titleShadow}>
+            <h1 className="scene-text mt-6 text-4xl leading-[1.08] font-extrabold sm:text-5xl lg:text-6xl">
               Companies automated customer service.
-              <span className="mt-2 block text-indigo-700">We automated you.</span>
+              <span className="scene-accent mt-2 block">We automated you.</span>
             </h1>
           </Reveal>
           <Reveal delay={160}>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed font-medium text-slate-800">
+            <p className="scene-text-sm mt-6 max-w-xl text-lg leading-relaxed font-semibold">
               Meet Counterbot, the assistant that stays with you the whole way. It reads the small print, fights the company's bot, brings a real person to the table and
               negotiates until you are paid.
             </p>
@@ -277,8 +272,6 @@ function Hero() {
           <HeroDemo />
         </Reveal>
       </div>
-      <div className={`h-5 border-t-4 border-slate-900 ${GRASS}`} />
-      <div className="h-6 bg-[#8a5a3b] [background-image:radial-gradient(#6b3f2a_2px,transparent_2px)] [background-size:16px_16px]" />
     </section>
   )
 }
@@ -291,12 +284,12 @@ function Problem() {
     ['No idea what you were entitled to', 'Reads the policy first and tells you what you are owed'],
   ]
   return (
-    <section className="bg-slate-50 py-20 md:py-24">
+    <section className="py-20 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal className="max-w-3xl">
           <Tag tone="gold">The problem</Tag>
-          <h2 className="mt-4 text-3xl leading-tight font-extrabold text-slate-900 sm:text-4xl">They put a bot between you and a human, on purpose.</h2>
-          <p className="mt-4 text-lg font-medium text-slate-700">Most players quit long before the company has to pay. Counterbot is built not to.</p>
+          <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">They put a bot between you and a human, on purpose.</h2>
+          <p className="scene-text-sm mt-4 text-lg font-semibold">Most players quit long before the company has to pay. Counterbot is built not to.</p>
         </Reveal>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           <Reveal>
@@ -347,11 +340,11 @@ const STEPS: [string, string, 'book' | 'compass' | 'loop' | 'shield'][] = [
 function HowItWorks() {
   const { ref, seen } = useInView<HTMLOListElement>(0.15)
   return (
-    <section id="how" className="scroll-mt-16 border-y-4 border-slate-900 bg-amber-200 py-20 md:py-24">
+    <section id="how" className="scroll-mt-16 py-20 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal className="max-w-3xl">
           <Tag>How to play</Tag>
-          <h2 className="mt-4 text-3xl leading-tight font-extrabold text-slate-900 sm:text-4xl">From “they ignored me” to “they paid me”, in four quests.</h2>
+          <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">From “they ignored me” to “they paid me”, in four quests.</h2>
         </Reveal>
         <ol ref={ref} className="mt-12 grid gap-6 md:grid-cols-4">
           {STEPS.map(([t, d, icon], i) => (
@@ -383,11 +376,11 @@ const FEATURES: [string, string, 'book' | 'loop' | 'compass' | 'eye' | 'phone' |
 
 function Features() {
   return (
-    <section id="features" className="scroll-mt-16 bg-slate-50 py-20 md:py-24">
+    <section id="features" className="scroll-mt-16 py-20 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal className="max-w-3xl">
           <Tag tone="gold">Skills</Tag>
-          <h2 className="mt-4 text-3xl leading-tight font-extrabold text-slate-900 sm:text-4xl">Everything a good advocate would do, unlocked from the start.</h2>
+          <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">Everything a good advocate would do, unlocked from the start.</h2>
         </Reveal>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(([t, d, icon], i) => (
@@ -413,7 +406,7 @@ function Features() {
 function Levels() {
   const { ref, seen } = useInView<HTMLDivElement>(0.3)
   return (
-    <section className="border-y-4 border-slate-900 bg-slate-900 py-20 text-slate-50 md:py-24">
+    <section className="border-y-4 border-slate-900 bg-slate-950/80 py-20 text-slate-50 md:py-24">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-2">
         <Reveal>
           <Tag tone="dark">Method, not luck</Tag>
@@ -469,12 +462,12 @@ function Trust() {
     ['Nothing is accepted against your rules', 'Counterbot holds out against vouchers and offers below your minimum, and you are told straight away.'],
   ]
   return (
-    <section id="trust" className="scroll-mt-16 bg-slate-50 py-20 md:py-24">
+    <section id="trust" className="scroll-mt-16 py-20 md:py-24">
       <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.85fr_1.15fr]">
         <Reveal>
           <Tag>Code of honour</Tag>
-          <h2 className="mt-4 text-3xl leading-tight font-extrabold text-slate-900 sm:text-4xl">Firm with companies. Straight with you.</h2>
-          <p className="mt-4 text-lg leading-relaxed font-medium text-slate-700">A sidekick worth having never puts you in a position you did not agree to.</p>
+          <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">Firm with companies. Straight with you.</h2>
+          <p className="scene-text-sm mt-4 text-lg leading-relaxed font-semibold">A sidekick worth having never puts you in a position you did not agree to.</p>
         </Reveal>
         <div className="grid gap-5 sm:grid-cols-2">
           {points.map(([t, d], i) => (

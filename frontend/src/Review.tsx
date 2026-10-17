@@ -40,7 +40,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
   )
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="min-h-screen text-slate-900">
       <header className="flex items-center gap-3 bg-slate-900 px-6 py-3 text-white">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
@@ -148,7 +148,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
               <button
                 onClick={() => onStart(checkIns)}
                 disabled={!claim.result.supported}
-                className="rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
+                className="px-btn font-pixel bg-amber-300 px-6 py-3 text-sm text-slate-900 uppercase disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Let Counterbot fight for this
               </button>

@@ -6,6 +6,7 @@ import { Home } from './Home'
 import { Landing } from './Landing'
 import type { Claim } from './Landing'
 import { Review } from './Review'
+import { Scenery } from './Scenery'
 
 // Routes: '' = marketing home, '#/start' = intake form, '#/review' = findings, '#/run' = dashboard, '#/agent' = second-laptop agent window.
 function Routes() {
@@ -72,6 +73,7 @@ export default function App() {
   }, [])
   return (
     <>
+      <Scenery />
       <Routes />
       {window.location.hash !== '#/agent' && <Companion />}
     </>

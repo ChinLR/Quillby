@@ -333,7 +333,7 @@ export function Dashboard({
   }, [id, n.connection, n.status])
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="min-h-screen text-slate-900">
       <header className="flex flex-wrap items-center gap-3 bg-slate-900 px-6 py-3 text-white">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
@@ -359,7 +359,7 @@ export function Dashboard({
         <div className="flex flex-wrap items-center gap-2">
           {!id || finished ? (
             <>
-              <button onClick={start} disabled={busy} className="rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
+              <button onClick={start} disabled={busy} className="px-btn font-pixel bg-amber-300 px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
                 {finished ? 'Run again' : 'Start Counterbot'}
               </button>
               <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm" aria-label="Speed">
@@ -369,13 +369,13 @@ export function Dashboard({
               </select>
             </>
           ) : status === 'paused' ? (
-            <button onClick={() => run(() => resumeNegotiation(id))} disabled={busy} className="rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
+            <button onClick={() => run(() => resumeNegotiation(id))} disabled={busy} className="px-btn font-pixel bg-amber-300 px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
               Resume autopilot
             </button>
           ) : callPhase ? (
-            <p className="text-sm text-slate-500">On the phone: autopilot is handling the call.</p>
+            <p className="scene-text-sm text-sm font-semibold">On the phone: autopilot is handling the call.</p>
           ) : (
-            <button onClick={() => run(() => pauseNegotiation(id))} disabled={busy} className="rounded-lg bg-white px-5 py-2.5 font-semibold text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-50">
+            <button onClick={() => run(() => pauseNegotiation(id))} disabled={busy} className="px-btn font-pixel bg-white px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
               Step in
             </button>
           )}
@@ -394,7 +394,7 @@ export function Dashboard({
             </label>
           )}
           {id && (
-            <button onClick={reset} disabled={busy} className="ml-auto rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-200 disabled:opacity-50">
+            <button onClick={reset} disabled={busy} className="scene-text-sm ml-auto rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-white/10 disabled:opacity-50">
               Reset demo
             </button>
           )}
@@ -429,17 +429,17 @@ export function Dashboard({
                       setDecision(null)
                       if (id) await resumeNegotiation(id)
                     })}
-                    className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white disabled:opacity-50"
+                    className="px-btn font-pixel bg-white px-4 py-2 text-sm text-slate-900 uppercase disabled:opacity-50"
                   >
                     Keep pushing
                   </button>
-                  <button onClick={() => setDecision(null)} className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white">
+                  <button onClick={() => setDecision(null)} className="px-btn font-pixel bg-white px-4 py-2 text-sm text-slate-900 uppercase">
                     I'll reply myself
                   </button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => setDecision(null)} className="rounded-lg bg-amber-950 px-4 py-2 text-sm font-semibold text-white hover:bg-black">
+                  <button onClick={() => setDecision(null)} className="px-btn font-pixel bg-slate-900 px-4 py-2 text-sm text-amber-100 uppercase">
                     Got it
                   </button>
                   {status === 'running' && (
@@ -449,7 +449,7 @@ export function Dashboard({
                         setDecision(null)
                         if (id) await pauseNegotiation(id)
                       })}
-                      className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white disabled:opacity-50"
+                      className="px-btn font-pixel bg-white px-4 py-2 text-sm text-slate-900 uppercase disabled:opacity-50"
                     >
                       Step in myself
                     </button>
@@ -520,7 +520,7 @@ export function Dashboard({
                   placeholder={inbox?.auto_agent ? 'Reply as the airline agent (turns the scripted agent off)…' : 'Reply as the airline agent (Sam)…'}
                   className="min-w-0 flex-1 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
                 />
-                <button disabled={busy || !agentDraft.trim()} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">
+                <button disabled={busy || !agentDraft.trim()} className="px-btn font-pixel bg-amber-300 px-4 py-2 text-sm text-slate-900 uppercase disabled:opacity-40">
                   Send as agent
                 </button>
               </form>
@@ -539,7 +539,7 @@ export function Dashboard({
                   placeholder="You are stepping in. Type as Alex…"
                   className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                 />
-                <button disabled={busy || !draft.trim()} className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">
+                <button disabled={busy || !draft.trim()} className="px-btn font-pixel bg-amber-300 px-4 py-2 text-sm text-slate-900 uppercase disabled:opacity-40">
                   Send
                 </button>
               </form>

@@ -108,7 +108,7 @@ export function AgentWindow() {
               placeholder={handedOff ? (inbox?.auto_agent ? 'Type to take over from auto-agent…' : 'Reply as Sam…') : 'You can reply once the bot hands over'}
               className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none disabled:bg-zinc-50"
             />
-            <button disabled={!handedOff || busy || !draft.trim()} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">
+            <button disabled={!handedOff || busy || !draft.trim()} className="px-btn font-pixel bg-amber-300 px-4 py-2 text-sm text-slate-900 uppercase disabled:opacity-40">
               Send
             </button>
           </form>

@@ -77,7 +77,7 @@ export function CallPanel({
       {canRecord && (
         <div className="flex flex-wrap items-center gap-2 border-t border-white/10 bg-black/20 px-5 py-3">
           <span className="text-xs text-slate-400">If the call can't be read, record the result yourself:</span>
-          <button disabled={busy} onClick={() => onRecord(goal, 'cash')} className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold hover:bg-emerald-500 disabled:opacity-50">
+          <button disabled={busy} onClick={() => onRecord(goal, 'cash')} className="px-btn font-pixel bg-amber-300 px-3 py-1.5 text-xs text-slate-900 uppercase disabled:opacity-50">
             Record result: £{goal} cash
           </button>
           <button disabled={busy} onClick={() => onRecord(0, 'none')} className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50">

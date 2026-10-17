@@ -48,7 +48,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
   useAssistantLine(busy ? 'Reading what you wrote…' : 'Tell me what happened. Take your time, and add anything you have.', busy ? 'think' : 'idle')
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="min-h-screen text-slate-900">
       <header className="flex items-center gap-3 bg-slate-900 px-6 py-3 text-white">
         <a href="#/" className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
@@ -58,8 +58,8 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">
         <div>
-          <h2 className="font-serif text-5xl leading-[1.05] font-medium tracking-tight">How can we help?</h2>
-          <p className="mt-2 text-slate-600">
+          <h2 className="font-serif text-5xl leading-[1.05] font-extrabold tracking-tight scene-text">How can we help?</h2>
+          <p className="scene-text-sm mt-2 font-semibold">
             Tell us what happened, in your own words, and share anything you have. We'll look through it with you and see what you may be owed.
           </p>
         </div>
@@ -128,7 +128,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
           <button
             onClick={analyse}
             disabled={busy || tooShort}
-            className="self-start rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+            className="px-btn font-pixel self-start bg-amber-300 px-6 py-3 text-sm text-slate-900 uppercase disabled:opacity-50"
           >
             {busy ? 'One moment…' : 'Take a look at my case'}
           </button>

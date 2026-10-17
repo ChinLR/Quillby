@@ -189,8 +189,33 @@ const CLOUD = [
   '.wwwwwwwwwwwwwwwwwwwll',
   '..llllllllllllllllll..',
 ]
-export function Cloud({ scale = 6, className = '' }: { scale?: number; className?: string }) {
-  return <PixelSprite rows={CLOUD} colors={{ ...PAL, l: '#dccdb0' }} scale={scale} className={className} />
+export function Cloud({ scale = 6, className = '', light = '#fbf4e4', shade = '#dccdb0' }: { scale?: number; className?: string; light?: string; shade?: string }) {
+  return <PixelSprite rows={CLOUD} colors={{ ...PAL, w: light, l: shade }} scale={scale} className={className} />
+}
+
+// A floating mossy island with a rocky underside and hanging roots, drawn procedurally.
+const hash = (a: number, b: number) => Math.abs(((a * 73856093) ^ (b * 19349663)) % 997)
+export function islandRows(w = 36, h = 24): string[] {
+  const grid: string[][] = Array.from({ length: h }, () => Array(w).fill('.'))
+  const mid = (w - 1) / 2
+  for (let r = 0; r < h - 2; r++) {
+    const half = Math.max(1, Math.round((w / 2 - 1) * Math.pow(1 - r / (h * 0.92), 0.8)))
+    for (let x = Math.round(mid - half); x <= Math.round(mid + half); x++) {
+      const n = hash(Math.floor(x / 2), Math.floor(r / 2))
+      grid[r][x] = r < 2 ? (n % 4 === 0 ? 'M' : 'm') : r === 2 ? (n % 3 === 0 ? 'm' : 'g') : n % 11 === 0 ? 'd' : n % 4 === 0 ? 'S' : 's'
+    }
+  }
+  // moss overhang drips and roots
+  for (let x = 2; x < w - 2; x += 3) if (grid[3][x] !== '.' && hash(x, 3) % 2) grid[3][x] = 'm'
+  for (let i = 0; i < 4; i++) {
+    const x = Math.round(mid - 6 + i * 4 + (hash(i, 9) % 3))
+    for (let r = h - 8; r < h; r++) if (grid[r - 1]?.[x] !== '.' || grid[r][x] === 'r') grid[r][x] = 'r'
+  }
+  return grid.map((row) => row.join(''))
+}
+const ISLAND_COLORS = { m: '#b4c231', M: '#8a9a24', g: '#4c6b3a', s: '#5d6e6a', S: '#3f4f4d', d: '#7b5a3c', r: '#5b3d27' }
+export function Island({ scale = 8, className = '' }: { scale?: number; className?: string }) {
+  return <PixelSprite rows={islandRows()} colors={ISLAND_COLORS} scale={scale} className={className} />
 }
 
 const DOC = [
