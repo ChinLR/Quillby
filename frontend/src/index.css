@@ -78,11 +78,11 @@
 
   /* "amber" is ochre / mustard */
   --color-amber-50: #fdf6e3;
-  --color-amber-100: #fbe3cc;
-  --color-amber-200: #f9cba5;
-  --color-amber-300: #f7b27e;
-  --color-amber-400: #ee9a62;
-  --color-amber-500: #f7b27e;
+  --color-amber-100: #fff3c4;
+  --color-amber-200: #fbe38a;
+  --color-amber-300: #f4c93f;
+  --color-amber-400: #e6b422;
+  --color-amber-500: #f4c93f;
   --color-amber-600: #b9832a;
   --color-amber-700: #946520;
   --color-amber-800: #6f4a18;
@@ -188,11 +188,11 @@ button:not(:disabled) {
   cursor: pointer;
 }
 button.px-btn {
-  border: 3px solid #7a3f24;
+  border: 3px solid #6b4a0b;
   border-radius: 8px;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.35),
-    0 4px 0 #7a3f24;
+    0 4px 0 #6b4a0b;
   transition: transform 0.06s steps(2), box-shadow 0.06s steps(2);
 }
 button.px-btn:hover:not(:disabled) {
@@ -214,42 +214,15 @@ button.px-btn:active:not(:disabled) {
     0 6px 0 0 rgba(20, 35, 32, 0.55);
 }
 
-/* Subtitle-style text for words that sit directly on the landscape. */
-.scene-text {
-  color: #f6f0dc;
-  text-shadow:
-    0 2px 0 #1d2f2c,
-    2px 0 0 #1d2f2c,
-    -2px 0 0 #1d2f2c,
-    0 -2px 0 #1d2f2c,
-    2px 2px 0 #1d2f2c,
-    -2px -2px 0 #1d2f2c,
-    2px -2px 0 #1d2f2c,
-    -2px 2px 0 #1d2f2c;
-}
+/* Text that sits directly on the landscape: dark ink with a faint light edge, no outlines. */
+.scene-text,
 .scene-text-sm {
-  color: #f6f0dc;
-  text-shadow:
-    0 1.5px 0 #1d2f2c,
-    1.5px 0 0 #1d2f2c,
-    -1.5px 0 0 #1d2f2c,
-    0 -1.5px 0 #1d2f2c,
-    1.5px 1.5px 0 #1d2f2c,
-    -1.5px -1.5px 0 #1d2f2c,
-    1.5px -1.5px 0 #1d2f2c,
-    -1.5px 1.5px 0 #1d2f2c;
+  color: #14302c;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 .scene-accent {
-  color: #f7b27e;
-  text-shadow:
-    0 2px 0 #1d2f2c,
-    2px 0 0 #1d2f2c,
-    -2px 0 0 #1d2f2c,
-    0 -2px 0 #1d2f2c,
-    2px 2px 0 #1d2f2c,
-    -2px -2px 0 #1d2f2c,
-    2px -2px 0 #1d2f2c,
-    -2px 2px 0 #1d2f2c;
+  color: #17523f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 @keyframes px-float {
   0%,
