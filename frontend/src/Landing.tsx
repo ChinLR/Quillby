@@ -47,7 +47,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
         <h1 className="text-lg font-bold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
         </h1>
-        <p className="hidden text-sm text-slate-400 sm:block">Someone on your side.</p>
+        <p className="hidden text-sm text-slate-400 sm:block">We read the small print, so you don't have to.</p>
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">
