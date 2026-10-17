@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { AgentWindow } from './AgentWindow'
 import { Dashboard } from './Dashboard'
+import { Home } from './Home'
 import { Landing } from './Landing'
 import type { Claim } from './Landing'
 import { Review } from './Review'
 
-// Routes: '' = landing, '#/review' = findings, '#/run' = dashboard, '#/agent' = second-laptop agent window.
+// Routes: '' = marketing home, '#/start' = intake form, '#/review' = findings, '#/run' = dashboard, '#/agent' = second-laptop agent window.
 export default function App() {
   const [hash, setHash] = useState(window.location.hash)
   const [claim, setClaim] = useState<Claim | null>(null)
@@ -33,7 +34,7 @@ export default function App() {
         onStarted={() => setAutoStart(false)}
         onNewClaim={() => {
           setClaim(null)
-          go('')
+          go('#/start')
         }}
       />
     )
@@ -42,7 +43,7 @@ export default function App() {
     return (
       <Review
         claim={claim}
-        onBack={() => go('')}
+        onBack={() => go('#/start')}
         onStart={(checkIns) => {
           setClaim({ ...claim, checkIns })
           setAutoStart(true)
@@ -50,6 +51,7 @@ export default function App() {
         }}
       />
     )
+  if (hash !== '#/start') return <Home />
   return (
     <Landing
       onReview={(c) => {

@@ -48,9 +48,9 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <header className="flex items-center gap-3 bg-slate-900 px-6 py-3 text-white">
-        <h1 className="text-lg font-bold tracking-tight">
+        <a href="#/" className="text-lg font-bold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
-        </h1>
+        </a>
         <p className="hidden text-sm text-slate-400 sm:block">We read the small print, so you don't have to.</p>
       </header>
 
