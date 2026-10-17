@@ -21,10 +21,514 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/case": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Case */
+        get: operations["get_case_api_case_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Negotiation */
+        post: operations["start_negotiation_api_negotiations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Negotiation */
+        get: operations["get_negotiation_api_negotiations__nid__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stream Events
+         * @description Server-sent events. Each event is an EventEnvelope; see /history for the typed shape.
+         */
+        get: operations["stream_events_api_negotiations__nid__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get History */
+        get: operations["get_history_api_negotiations__nid__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause */
+        post: operations["pause_api_negotiations__nid__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume */
+        post: operations["resume_api_negotiations__nid__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Customer Message */
+        post: operations["customer_message_api_negotiations__nid__message_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_report_api_negotiations__nid__report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset */
+        post: operations["reset_api_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/company/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inbox */
+        get: operations["inbox_api_company_inbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/company/reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Agent Reply */
+        post: operations["agent_reply_api_company_reply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/company/auto-agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Auto Agent */
+        post: operations["set_auto_agent_api_company_auto_agent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        /** AutoAgentBody */
+        AutoAgentBody: {
+            /** Enabled */
+            enabled: boolean;
+        };
+        /** AutoAgentResponse */
+        AutoAgentResponse: {
+            /** Auto Agent */
+            auto_agent: boolean;
+        };
+        /** Case */
+        Case: {
+            /** Id */
+            id: string;
+            /** Passenger Name */
+            passenger_name: string;
+            /** Booking Ref */
+            booking_ref: string;
+            /** Airline */
+            airline: string;
+            /** Flight Number */
+            flight_number: string;
+            /** Origin */
+            origin: string;
+            /** Destination */
+            destination: string;
+            /** Scheduled Arrival */
+            scheduled_arrival: string;
+            /** Actual Arrival */
+            actual_arrival: string;
+            /** Delay Minutes */
+            delay_minutes: number;
+            /** Airline Reason */
+            airline_reason: string;
+            /** Goal Gbp */
+            goal_gbp: number;
+            /** Floor Gbp */
+            floor_gbp: number;
+            legal: components["schemas"]["Legal"];
+        };
+        /** ConcessionStep */
+        ConcessionStep: {
+            /** Step */
+            step: number;
+            /**
+             * Offer Type
+             * @enum {string}
+             */
+            offer_type: "voucher" | "cash";
+            /** Amount Gbp */
+            amount_gbp: number;
+            /** Condition */
+            condition: string;
+        };
+        /** Detection */
+        Detection: {
+            /** Is Human */
+            is_human: boolean;
+            /** Confidence */
+            confidence: number;
+            /**
+             * Signals
+             * @default []
+             */
+            signals: string[];
+        };
+        /** EventEnvelope */
+        EventEnvelope: {
+            /** Seq */
+            seq: number;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "message" | "tactic" | "detection" | "offer" | "status";
+            message?: components["schemas"]["Message"] | null;
+            tactic?: components["schemas"]["Tactic"] | null;
+            detection?: components["schemas"]["Detection"] | null;
+            offer?: components["schemas"]["Offer"] | null;
+            status?: components["schemas"]["StatusUpdate"] | null;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HealthResponse */
+        HealthResponse: {
+            /** Ok */
+            ok: boolean;
+            /** Replay Mode */
+            replay_mode: boolean;
+        };
+        /** History */
+        History: {
+            /** Events */
+            events: components["schemas"]["EventEnvelope"][];
+            /** Last Seq */
+            last_seq: number;
+        };
+        /** Inbox */
+        Inbox: {
+            /** Handed Off */
+            handed_off: boolean;
+            /** Auto Agent */
+            auto_agent: boolean;
+            /** Messages */
+            messages: components["schemas"]["Message"][];
+            /** Cheat Sheet */
+            cheat_sheet: components["schemas"]["ConcessionStep"][];
+        };
+        /** Legal */
+        Legal: {
+            /** Title */
+            title: string;
+            /** Points */
+            points: string[];
+            /** Disclaimer */
+            disclaimer: string;
+        };
+        /** Message */
+        Message: {
+            /** Id */
+            id: string;
+            /**
+             * Sender
+             * @enum {string}
+             */
+            sender: "customer_bot" | "company_bot" | "human_agent" | "customer" | "system";
+            /** Sender Label */
+            sender_label: string;
+            /** Text */
+            text: string;
+            /**
+             * Buttons
+             * @default []
+             */
+            buttons: string[];
+            /** Clicked Button */
+            clicked_button?: string | null;
+            /**
+             * Typing Ms
+             * @default 0
+             */
+            typing_ms: number;
+            /** Created At */
+            created_at: string;
+        };
+        /** NegotiationState */
+        NegotiationState: {
+            /** Id */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "paused" | "won" | "walked_away" | "failed";
+            /** Human Reached */
+            human_reached: boolean;
+            /** Stage */
+            stage: number;
+            /** Pressure */
+            pressure: number;
+            /** Best Offer Gbp */
+            best_offer_gbp?: number | null;
+            /** Goal Gbp */
+            goal_gbp: number;
+            /** Floor Gbp */
+            floor_gbp: number;
+            /** Started At */
+            started_at: string;
+        };
+        /** Offer */
+        Offer: {
+            /** Amount Gbp */
+            amount_gbp: number;
+            /**
+             * Offer Type
+             * @enum {string}
+             */
+            offer_type: "voucher" | "cash";
+            /**
+             * Accepted
+             * @default false
+             */
+            accepted: boolean;
+        };
+        /** OkResponse */
+        OkResponse: {
+            /** Ok */
+            ok: boolean;
+        };
+        /** Report */
+        Report: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "won" | "walked_away" | "failed";
+            /** Amount Gbp */
+            amount_gbp: number;
+            /**
+             * Offer Type
+             * @enum {string}
+             */
+            offer_type: "voucher" | "cash" | "none";
+            /** Goal Gbp */
+            goal_gbp: number;
+            /** Floor Gbp */
+            floor_gbp: number;
+            /** Duration Seconds */
+            duration_seconds: number;
+            /** Bot Message Count */
+            bot_message_count: number;
+            /** Estimated Minutes Saved */
+            estimated_minutes_saved: number;
+            /** Stages Reached */
+            stages_reached: string[];
+            /** Transcript */
+            transcript: components["schemas"]["Message"][];
+        };
+        /** StartRequest */
+        StartRequest: {
+            /** Goal Gbp */
+            goal_gbp?: number | null;
+            /** Floor Gbp */
+            floor_gbp?: number | null;
+            /**
+             * Speed
+             * @default 1
+             */
+            speed: number;
+        };
+        /** StatusUpdate */
+        StatusUpdate: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "paused" | "won" | "walked_away" | "failed";
+            /** Human Reached */
+            human_reached: boolean;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+        };
+        /** Tactic */
+        Tactic: {
+            /** Stage */
+            stage: number;
+            /** Stage Name */
+            stage_name: string;
+            /** Move */
+            move: string;
+            /** Reason */
+            reason: string;
+            /** Pressure */
+            pressure: number;
+        };
+        /** TextBody */
+        TextBody: {
+            /** Text */
+            text: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -48,7 +552,389 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    get_case_api_case_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Case"];
+                };
+            };
+        };
+    };
+    start_negotiation_api_negotiations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StartRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NegotiationState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_negotiation_api_negotiations__nid__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NegotiationState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_events_api_negotiations__nid__events_get: {
+        parameters: {
+            query?: {
+                after?: number;
+            };
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_history_api_negotiations__nid__history_get: {
+        parameters: {
+            query?: {
+                after?: number;
+            };
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["History"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pause_api_negotiations__nid__pause_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NegotiationState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_api_negotiations__nid__resume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NegotiationState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    customer_message_api_negotiations__nid__message_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_report_api_negotiations__nid__report_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Report"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_api_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+        };
+    };
+    inbox_api_company_inbox_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inbox"];
+                };
+            };
+        };
+    };
+    agent_reply_api_company_reply_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_auto_agent_api_company_auto_agent_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoAgentBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoAgentResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
