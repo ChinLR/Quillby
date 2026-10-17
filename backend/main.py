@@ -1,6 +1,8 @@
 import asyncio
 import os
 
+from dotenv import load_dotenv
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -19,7 +21,15 @@ from models import (
     StartRequest,
     TextBody,
 )
-from stub_engine import CASE, FINISHED, LADDER, Run
+load_dotenv()  # ENGINE and REPLAY_MODE can live in .env
+
+from run_base import CASE, FINISHED, LADDER
+
+# ENGINE=stub plays the scripted run with no LLM calls (fallback for the demo).
+if os.environ.get("ENGINE", "real") == "stub":
+    from stub_engine import StubRun as Run
+else:
+    from engine import Run
 
 app = FastAPI()
 app.add_middleware(
