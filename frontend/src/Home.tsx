@@ -157,7 +157,7 @@ function HeroDemo() {
         <div className="mt-3 flex h-36 items-end justify-between px-2 sm:px-6">
           <div className={`${lastUs ? 'translate-x-1' : ''} transition-transform duration-200`}>{human ? <SamSprite scale={7} /> : <NovaSprite scale={7} />}</div>
           <div className={`${lastUs ? '-translate-x-2' : ''} transition-transform duration-200`}>
-            <CounterbotSprite mood={won ? 'happy' : 'fight'} scale={7} />
+            <CounterbotSprite mood={won ? 'happy' : 'fight'} scale={5} />
           </div>
         </div>
         <div className={`-mx-4 h-4 border-t-4 border-slate-900 ${GRASS}`} />
@@ -233,14 +233,14 @@ function Hero() {
           </Reveal>
           <Reveal delay={80}>
             <h1 className="scene-text mt-6 text-4xl leading-[1.08] font-extrabold sm:text-5xl lg:text-6xl">
-              Companies automated customer service.
-              <span className="scene-accent mt-2 block">We automated you.</span>
+              Companies hide behind bots.
+              <span className="scene-accent mt-2 block">Counterbot fights them for you.</span>
             </h1>
           </Reveal>
           <Reveal delay={160}>
             <p className="scene-text-sm mt-6 max-w-xl text-lg leading-relaxed font-semibold">
-              Meet Counterbot, the assistant that stays with you the whole way. It reads the small print, fights the company's bot, brings a real person to the table and
-              negotiates until you are paid.
+              Meet Counterbot, the wizard who stays by your side. He reads the small print, fights the company's bot, brings a real person to the table and negotiates
+              until you are paid.
             </p>
           </Reveal>
           <Reveal delay={240}>
@@ -466,7 +466,7 @@ function Trust() {
       <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.85fr_1.15fr]">
         <Reveal>
           <Tag>Code of honour</Tag>
-          <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">Firm with companies. Straight with you.</h2>
+          <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">On your side, every step of the way.</h2>
           <p className="scene-text-sm mt-4 text-lg leading-relaxed font-semibold">A sidekick worth having never puts you in a position you did not agree to.</p>
         </Reveal>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -492,9 +492,9 @@ function FinalCta() {
     <section className="px-5 pt-4 pb-20 md:pb-24">
       <Reveal>
         <div className="px-panel mx-auto flex max-w-4xl flex-col items-center gap-5 bg-amber-100 px-6 py-12 text-center">
-          <CounterbotSprite mood="happy" scale={8} />
+          <CounterbotSprite mood="happy" scale={6} />
           <h2 className="max-w-2xl text-3xl leading-tight font-extrabold text-slate-900 sm:text-4xl">Had a flight delayed? Find out what you are owed.</h2>
-          <p className="max-w-xl text-lg font-medium text-slate-700">Tell Counterbot what happened. It will read the policy, show you the numbers and fight for them.</p>
+          <p className="max-w-xl text-lg font-medium text-slate-700">Tell Counterbot what happened. He will read the policy, show you the numbers and fight for them.</p>
           <button onClick={startClaim} className="px-btn font-pixel mt-2 bg-amber-300 px-8 py-4 text-base text-slate-900 uppercase">
             ▶ Press start
           </button>

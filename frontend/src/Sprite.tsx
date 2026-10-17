@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // Pixel art as strings: one character per pixel, '.' is transparent. Rendered as crisp SVG rects.
 export function PixelSprite({
@@ -66,46 +66,146 @@ const PAL = {
 /* ---------- Counterbot: the customer's assistant ---------- */
 
 export type Mood = 'idle' | 'think' | 'fight' | 'happy' | 'sad'
-const EYE: Record<Mood, string> = { idle: '#8fe6ee', think: '#e8c067', fight: '#e8844f', happy: '#b7d96b', sad: '#bfae8f' }
 
-function counterbotRows(blink: boolean, mood: Mood): string[] {
-  // Visor rows (cols 4..11): open eyes, a squint for blinking, angry slant for fighting.
-  const visor =
-    blink || mood === 'sad'
-      ? ['kkkkkkkk', 'kkkkkkkk', 'kcckkcck']
-      : mood === 'fight'
-        ? ['kckkkkck', 'kkcckcck', 'kkkkkkkk']
-        : mood === 'happy'
-          ? ['kkckkckk', 'kcckkcck', 'kkkkkkkk']
-          : ['kkkkkkkk', 'kcckkcck', 'kkkkkkkk']
-  const rows = [
-    '.......yy.......',
-    '.......kk.......',
-    '...kkkkkkkkkk...',
-    '..kbbbbbbbbbbk..',
-    `..kb${visor[0]}bk..`,
-    `..kb${visor[1]}bk..`,
-    `..kb${visor[2]}bk..`,
-    '..kbbbbbbbbbbk..',
-    '...kkkkkkkkkk...',
-    '..kkbbbbbbbbkk..',
-    '.kgkbbyyyybbkgk.',
-    '.kgkbbbyybbbkgk.',
-    '..kkbbbbbbbbkk..',
-    '...kbbbbbbbbk...',
-    '...kbbk..kbbk...',
-    '..kkkkk..kkkkk..',
-  ]
-  if (mood === 'happy') {
-    // confetti
-    rows[0] = '.y.....yy....y..'
-    rows[1] = 'y......kk.....y.'
+// Counterbot is a wizard: blue robe and pointed hat with a gold star, white beard, a staff,
+// and a sword that comes out when he fights. 20 x 24 pixels.
+const WIZARD_COLORS = {
+  k: '#241b13',
+  b: '#3a56b0',
+  B: '#2a3f87',
+  L: '#6f8fe0',
+  y: '#f2c744',
+  w: '#f4f0e6',
+  g: '#cfc8b8',
+  s: '#f0c9a0',
+  n: '#8a5a3b',
+  i: '#e4ebf2',
+  I: '#9aa8ba',
+  p: '#e89a93',
+}
+const WIZARD_BASE = [
+  '.........kk.........',
+  '........kBBk........',
+  '........kbbk........',
+  '.......kbbbbk.......',
+  '.......kbbLbk.......',
+  '......kbbbbbbk......',
+  '......kbbyybbk......',
+  '.....kbbbyybbbk.....',
+  '....kbbbbbbbbbbk....',
+  '..kkkkkkkkkkkkkkkk..',
+  '...kyyyyyyyyyyyyk...',
+  '....kssssssssssk....',
+  '....kssksssskssk....',
+  '....kssssssssssk....',
+  '...kwwwwwwwwwwwwk...',
+  '...kwwwwgwwgwwwwk...',
+  '....kwwwwwwwwwwk....',
+  '..kbbbbbwwwwbbbbbk..',
+  '..kbbLbbbwwbbbbLbk..',
+  '..kbbbbbbbbbbbbbbk..',
+  '..kbbbbyyyyyybbbbk..',
+  '..kbbbbbbbbbbbbbbk..',
+  '..kBBBBBBBBBBBBBBk..',
+  '...kkkkkkkkkkkkkk...',
+]
+
+function wizardRows(blink: boolean, mood: Mood, wave: number): string[] {
+  const g = WIZARD_BASE.map((r) => r.split(''))
+  const put = (x: number, y: number, c: string) => {
+    if (g[y] && x >= 0 && x < g[y].length) g[y][x] = c
   }
-  return rows
+  if (mood === 'fight') {
+    // sword raised in the right hand
+    put(18, 0, 'I')
+    for (let y = 1; y <= 13; y++) {
+      put(18, y, 'i')
+      put(19, y, 'I')
+    }
+    for (let x = 17; x <= 19; x++) put(x, 14, 'y')
+    put(18, 15, 's')
+    put(18, 16, 'n')
+    put(18, 17, 'y')
+    // furrowed brows
+    put(6, 11, 'k')
+    put(7, 11, 'k')
+    put(12, 11, 'k')
+    put(13, 11, 'k')
+  } else {
+    // staff with a gold star on top; when he waves it, the staff is raised and magic flies
+    const top = wave ? 0 : 2
+    put(18, top, 'y')
+    put(17, top + 1, 'y')
+    put(18, top + 1, 'y')
+    put(19, top + 1, 'y')
+    put(18, top + 2, 'y')
+    for (let y = top + 3; y <= 22; y++) put(18, y, 'n')
+    put(18, 15, 's')
+    put(18, 16, 's')
+    if (wave === 1) {
+      put(15, 0, 'y')
+      put(16, 3, 'L')
+      put(14, 2, 'L')
+      put(19, 5, 'y')
+    } else if (wave === 2) {
+      put(14, 1, 'y')
+      put(16, 5, 'L')
+      put(15, 3, 'y')
+      put(19, 4, 'L')
+    }
+  }
+  if (blink || mood === 'sad') {
+    put(7, 12, 's')
+    put(12, 12, 's')
+    put(7, 13, 'k')
+    put(12, 13, 'k')
+  }
+  if (mood === 'happy') {
+    put(6, 13, 'p')
+    put(13, 13, 'p')
+    put(2, 5, 'y')
+    put(16, 6, 'y')
+    put(1, 9, 'y')
+  }
+  return g.map((r) => r.join(''))
 }
 
 export function CounterbotSprite({ mood = 'idle', scale = 4, bob = true, walking = false, className = '' }: { mood?: Mood; scale?: number; bob?: boolean; walking?: boolean; className?: string }) {
   const [blink, setBlink] = useState(false)
+  const [wave, setWave] = useState(0)
+  const calm = mood === 'fight'
+  const walkingRef = useRef(walking)
+  walkingRef.current = walking
+  const timers = useRef<number[]>([])
+  const cast = useCallback(() => {
+    if (walkingRef.current) return
+    ;[1, 2, 1, 2, 1, 0].forEach((f, i) => timers.current.push(window.setTimeout(() => setWave(f), i * 170)))
+  }, [])
+  // Now and then he waves his staff and a little magic flies: on a timer, and often when he stops walking.
+  useEffect(() => {
+    if (calm || (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return
+    let t = 0
+    const loop = () => {
+      t = window.setTimeout(() => {
+        cast()
+        loop()
+      }, 4000 + Math.random() * 4000)
+    }
+    loop()
+    const pending = timers.current
+    return () => {
+      window.clearTimeout(t)
+      pending.forEach((id) => window.clearTimeout(id))
+      setWave(0)
+    }
+  }, [calm, cast])
+  useEffect(() => {
+    if (walking || calm) return
+    const t = window.setTimeout(() => {
+      if (Math.random() < 0.5) cast()
+    }, 350)
+    return () => window.clearTimeout(t)
+  }, [walking, calm, cast])
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let t1 = 0
@@ -127,7 +227,9 @@ export function CounterbotSprite({ mood = 'idle', scale = 4, bob = true, walking
   }, [])
   return (
     <span className={`inline-block ${walking ? 'px-walk' : bob ? 'px-bob' : ''} ${className}`}>
-      <PixelSprite rows={counterbotRows(blink, mood)} colors={{ ...PAL, c: EYE[mood] }} scale={scale} label="Counterbot, your assistant" />
+      <span style={{ display: 'inline-block', transformOrigin: '50% 100%', transform: wave === 1 ? 'rotate(-5deg)' : wave === 2 ? 'rotate(5deg)' : undefined }}>
+        <PixelSprite rows={wizardRows(blink, mood, wave)} colors={WIZARD_COLORS} scale={scale} label="Counterbot, your wizard assistant" />
+      </span>
     </span>
   )
 }
@@ -252,11 +354,11 @@ export function Icon({ name, scale = 5, className = '' }: { name: keyof typeof I
 
 /* ---------- who is who in a chat ---------- */
 
-export function Avatar({ who, scale = 3 }: { who: 'company_bot' | 'human_agent' | 'customer_bot' | 'customer' | 'system'; scale?: number }) {
+export function Avatar({ who }: { who: 'company_bot' | 'human_agent' | 'customer_bot' | 'customer' | 'system' }) {
   if (who === 'customer' || who === 'system') return null
   return (
-    <span className="inline-flex shrink-0 items-end justify-center border-[3px] border-slate-900 bg-white" style={{ width: 16 * scale + 6, height: 16 * scale + 6 }}>
-      {who === 'company_bot' ? <NovaSprite scale={scale} /> : who === 'human_agent' ? <SamSprite scale={scale} /> : <CounterbotSprite scale={scale} bob={false} />}
+    <span className="inline-flex size-[54px] shrink-0 items-end justify-center border-[3px] border-slate-900 bg-white">
+      {who === 'company_bot' ? <NovaSprite scale={3} /> : who === 'human_agent' ? <SamSprite scale={3} /> : <CounterbotSprite scale={2} bob={false} />}
     </span>
   )
 }

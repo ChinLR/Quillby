@@ -249,7 +249,7 @@ export function Dashboard({
       line = n.tactic ? `Fighting the bot. Level ${n.tactic.stage}: ${n.tactic.stage_name}.` : 'Starting the fight…'
     }
   }
-  useAssistantLine(line, mood, { place: id ? 'right' : 'left' })
+  useAssistantLine(line, mood, { place: id ? 'right' : 'left', working: !!id && !finished })
 
   const agentLive = !!inbox?.handed_off && n.humanReached && !finished && !callPhase && !inbox.call_number
 
