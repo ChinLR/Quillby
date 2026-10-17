@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useAssistantLine } from './assistant'
-import { Cloud, CounterbotSprite, Icon, NovaSprite, SamSprite } from './Sprite'
+import { Cloud, WizardSprite, Icon, NovaSprite, SamSprite } from './Sprite'
 
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -95,14 +95,14 @@ const CARDS: Card[] = [
     retreat: 'Loops',
   },
   {
-    name: 'Counterbot',
+    name: 'Haggis the Wise',
     kind: 'Wizard',
     stage: 'Basic',
     hp: 120,
     ribbon: 'Wizard of the small print · Lv 6',
     sky: 'bg-[linear-gradient(to_bottom,#4c9aa6_0_30%,#66b0b5_30%_55%,#83c5c3_55%_100%)]',
     ground: GRASS,
-    character: <CounterbotSprite mood="idle" scale={5} idleWave />,
+    character: <WizardSprite mood="idle" scale={5} idleWave />,
     moves: [
       ['Claimus!', 'Reads the small print.', '30'],
       ['Cashus Maxima!', 'Holds out for real money.', '120+'],
@@ -140,7 +140,7 @@ function CharacterCard({ card, className = '' }: { card: Card; className?: strin
               <span className="mr-1 bg-slate-900 px-1 py-0.5 text-amber-300">{card.stage}</span>
               {card.kind}
             </p>
-            <p className="truncate text-2xl leading-none font-black text-slate-900">{card.name}</p>
+            <p className={`truncate leading-none font-black text-slate-900 ${card.name.length > 10 ? 'text-xl' : 'text-2xl'}`}>{card.name}</p>
           </div>
           <p className="flex shrink-0 items-center gap-1 text-rose-700">
             <span className="font-pixel text-[10px]">HP</span>
@@ -193,7 +193,7 @@ function Nav() {
     <header className="fixed inset-x-0 top-0 z-30 border-b-4 border-[#1f4a45] bg-[#2f6f66] text-slate-50">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-2">
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2" aria-label="Counterbot, back to top">
-          <CounterbotSprite scale={2} bob={false} />
+          <WizardSprite scale={2} bob={false} />
           <span className="font-pixel text-lg text-slate-50 uppercase">Counterbot</span>
         </button>
         <nav className="font-pixel ml-4 hidden gap-6 text-sm text-amber-200 uppercase md:flex">
@@ -220,7 +220,7 @@ function Hero() {
           </div>
           <h1 className="mt-5 text-4xl leading-[1.04] font-black tracking-tight text-slate-900 sm:text-6xl">
             Companies hide behind bots.
-            <span className="mt-1 block text-[#7a2a14]">Counterbot fights them for you.</span>
+            <span className="mt-1 block text-[#7a2a14]">Haggis the Wise fights them for you.</span>
           </h1>
           <button onClick={startClaim} className="px-btn font-pixel mt-6 bg-amber-300 px-8 py-4 text-base text-slate-900 uppercase">
             ▶ Start your claim
@@ -239,7 +239,7 @@ function Hero() {
 
 const STEPS: [string, string, 'book' | 'compass' | 'shield'][] = [
   ['Tell us what happened', 'In your own words. Add any receipts.', 'book'],
-  ['Counterbot reads the policy', 'He works out what you are owed, and shows you.', 'compass'],
+  ['Haggis reads the policy', 'He works out what you are owed, and shows you.', 'compass'],
   ['He fights. You get paid.', 'Their bot first, then their human, until you are satisfied.', 'shield'],
 ]
 
@@ -274,7 +274,7 @@ function HowItWorks() {
 }
 
 export function Home() {
-  useAssistantLine("Hi! I'm Counterbot, your assistant. Press start and tell me what happened.", 'idle')
+  useAssistantLine("Hi! I'm Haggis the Wise, your assistant. Press start and tell me what happened.", 'idle')
   return (
     <div>
       <Nav />

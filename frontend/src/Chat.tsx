@@ -4,6 +4,9 @@ import { Avatar } from './Sprite'
 
 type Sender = Message['sender']
 
+// The backend labels our side "Counterbot (for Alex)"; on screen the wizard is Haggis the Wise.
+const wizardName = (label: string) => label.replace(/^Counterbot/, 'Haggis the Wise')
+
 const bubble: Record<Sender, string> = {
   customer_bot: 'bg-indigo-600 text-white',
   customer: 'bg-slate-800 text-white',
@@ -45,7 +48,7 @@ export function Chat({
           <div key={m.id} className={`flex max-w-[88%] items-end gap-2 ${right ? 'flex-row-reverse self-end' : ''}`}>
             <Avatar who={m.sender} />
             <div className={`flex max-w-[80%] flex-col gap-1 ${right ? 'items-end' : 'items-start'}`}>
-              <span className="font-pixel px-1 text-[11px] text-slate-600">{m.sender_label}</span>
+              <span className="font-pixel px-1 text-[11px] text-slate-600">{wizardName(m.sender_label)}</span>
               {m.clicked_button ? (
                 <span className="border-[3px] border-slate-900 bg-indigo-200 px-3 py-1 text-sm font-medium text-slate-900">▸ {m.clicked_button}</span>
               ) : (
@@ -68,10 +71,10 @@ export function Chat({
         <div className={`flex items-end gap-2 ${mine.includes(typing.sender) ? 'flex-row-reverse self-end' : ''}`}>
           <Avatar who={typing.sender} />
           <div className={`flex flex-col gap-1 ${mine.includes(typing.sender) ? 'items-end' : 'items-start'}`}>
-            <span className="font-pixel px-1 text-[11px] text-slate-600">{typing.sender_label} is typing</span>
+            <span className="font-pixel px-1 text-[11px] text-slate-600">{wizardName(typing.sender_label)} is typing</span>
             <div
               className={`flex gap-1.5 border-[3px] border-slate-900 px-3 py-3 ${mine.includes(typing.sender) ? 'bg-indigo-600' : 'bg-white'}`}
-              aria-label={`${typing.sender_label} is typing`}
+              aria-label={`${wizardName(typing.sender_label)} is typing`}
             >
               {[0, 150, 300].map((d) => (
                 <span key={d} className={`size-2 animate-bounce ${mine.includes(typing.sender) ? 'bg-indigo-200' : 'bg-slate-500'}`} style={{ animationDelay: `${d}ms` }} />

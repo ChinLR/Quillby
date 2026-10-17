@@ -49,7 +49,7 @@ export function PixelSprite({
 
 const PAL = {
   k: '#241b13',
-  b: '#3b5dc9', // Counterbot stays blue
+  b: '#3b5dc9', // the wizard stays blue
   l: '#73c1f5',
   y: '#e2b04f',
   o: '#d9814f',
@@ -63,11 +63,11 @@ const PAL = {
   n: '#8a5a3b',
 }
 
-/* ---------- Counterbot: the customer's assistant ---------- */
+/* ---------- Haggis the Wise: the customer's assistant ---------- */
 
 export type Mood = 'idle' | 'think' | 'fight' | 'duel' | 'happy' | 'sad'
 
-// Counterbot is a wizard: blue robe and pointed hat with a gold star, white beard, a staff,
+// Haggis the Wise is a wizard: blue robe and pointed hat with a gold star, white beard, a staff,
 // and a sword that comes out when he fights. 20 x 24 pixels.
 const WIZARD_COLORS = {
   k: '#241b13',
@@ -179,7 +179,7 @@ function wizardRows(blink: boolean, mood: Mood, wave: number): string[] {
   return g.map((r) => r.join(''))
 }
 
-export function CounterbotSprite({
+export function WizardSprite({
   mood = 'idle',
   scale = 4,
   bob = true,
@@ -248,7 +248,7 @@ export function CounterbotSprite({
   return (
     <span className={`inline-block ${walking ? 'px-walk' : bob ? 'px-bob' : ''} ${className}`}>
       <span style={{ display: 'inline-block', transformOrigin: '50% 100%', transform: wave === 1 ? 'rotate(-5deg)' : wave === 2 ? 'rotate(5deg)' : undefined }}>
-        <PixelSprite rows={wizardRows(blink, mood, wave)} colors={WIZARD_COLORS} scale={scale} label="Counterbot, your wizard assistant" />
+        <PixelSprite rows={wizardRows(blink, mood, wave)} colors={WIZARD_COLORS} scale={scale} label="Haggis the Wise, your wizard assistant" />
       </span>
     </span>
   )
@@ -378,7 +378,7 @@ export function Avatar({ who }: { who: 'company_bot' | 'human_agent' | 'customer
   if (who === 'customer' || who === 'system') return null
   return (
     <span className="inline-flex size-[54px] shrink-0 items-end justify-center border-[3px] border-slate-900 bg-white">
-      {who === 'company_bot' ? <NovaSprite scale={3} /> : who === 'human_agent' ? <SamSprite scale={3} /> : <CounterbotSprite scale={2} bob={false} />}
+      {who === 'company_bot' ? <NovaSprite scale={3} /> : who === 'human_agent' ? <SamSprite scale={3} /> : <WizardSprite scale={2} bob={false} />}
     </span>
   )
 }

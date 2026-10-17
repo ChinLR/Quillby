@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CounterbotSprite, DocSprite } from './Sprite'
+import { WizardSprite, DocSprite } from './Sprite'
 
 // Where each document starts, just outside the screen edges (percent of the viewport).
 const EDGES: [number, number][] = [
@@ -18,7 +18,7 @@ export const walkDuration = (n: number) => FIRST_MS + (Math.min(n, EDGES.length)
 const short = (s: string) => (s.length > 24 ? s.slice(0, 21) + '…' : s)
 type Phase = 'wait' | 'fly' | 'gone'
 
-// While Counterbot checks the documents he stays in his corner and waves his wand; each document
+// While Haggis checks the documents he stays in his corner and waves his wand; each document
 // flies in from the edge of the screen, spinning, and he catches it in a burst of sparkles.
 export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }) {
   const shown = docs.slice(0, EDGES.length)
@@ -28,7 +28,7 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
   const [burst, setBurst] = useState(0)
   const [last, setLast] = useState('')
 
-  // Pixel positions fixed at mount: where each document starts, and where Counterbot stands.
+  // Pixel positions fixed at mount: where each document starts, and where Haggis stands.
   const geo = useMemo(() => {
     const vw = window.innerWidth
     const vh = window.innerHeight
@@ -100,14 +100,14 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
         )
       })}
 
-      {/* Counterbot, in his corner, waving his wand for each document */}
+      {/* Haggis, in his corner, waving his wand for each document */}
       <div className="fixed right-4 bottom-4 h-24 w-20">
         {last && (
           <span key={burst} className="px-panel animate-pop-in absolute right-0 bottom-full mb-3 w-max max-w-[14rem] px-2.5 py-1.5 text-center text-xs font-bold text-slate-900">
             Got it: {short(last)} ✓
           </span>
         )}
-        <CounterbotSprite scale={4} mood="think" waveSignal={wave} />
+        <WizardSprite scale={4} mood="think" waveSignal={wave} />
         {burst > 0 &&
           [0, 1, 2, 3, 4, 5].map((k) => {
             const a = (k / 6) * Math.PI * 2

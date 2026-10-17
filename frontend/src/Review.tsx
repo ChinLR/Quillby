@@ -20,7 +20,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
     c.legal.title.replace(/\s*\(summary\)/i, '') + ': checking the rules',
     'Working out what you are owed',
   ]
-  // Counterbot walks to each document, reads it and collects it. The checklist is paced to finish with it.
+  // Haggis collects to each document, reads it and collects it. The checklist is paced to finish with it.
   const docNames = docs > 0 ? claim.files.map((f) => f.name) : ['Your description', `Booking ${c.booking_ref}`, `Flight ${c.flight_number} record`]
   const stepMs = Math.max(1100, Math.round(walkDuration(docNames.length) / steps.length))
   const [done, setDone] = useState(0)
@@ -119,7 +119,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
             <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
               <div>
                 <h3 className="text-sm font-semibold">You stay informed</h3>
-                <p className="text-sm text-slate-500">Counterbot keeps fighting for you the whole way. It will tell you straight away if any of these happen, and you can step in whenever you like.</p>
+                <p className="text-sm text-slate-500">Haggis keeps fighting for you the whole way. It will tell you straight away if any of these happen, and you can step in whenever you like.</p>
               </div>
               {(
                 [
@@ -149,14 +149,14 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => {
-                  // Open the airline's (fake) site in its own tab; its support chat fills in as Counterbot talks.
+                  // Open the airline's (fake) site in its own tab; its support chat fills in as Haggis talks.
                   window.open('/northwind/', 'northwind-airline')
                   onStart(checkIns)
                 }}
                 disabled={!claim.result.supported}
                 className="px-btn font-pixel bg-amber-300 px-6 py-3 text-sm text-slate-900 uppercase disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Let Counterbot fight for this
+                Let Haggis fight for this
               </button>
               <p className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-200">
                 It will deal with their bot and a person on your behalf.

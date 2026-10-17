@@ -121,7 +121,7 @@ export function Dashboard({
   const n = useNegotiation(id, speed)
   const { inbox, refresh } = useInbox(!!id)
 
-  // Counterbot keeps negotiating on its own. Two kinds of alert, both driven by the raw feed so the
+  // Haggis keeps negotiating on its own. Two kinds of alert, both driven by the raw feed so the
   // customer hears before the chat catches up:
   //  - info: a voucher or low offer they asked to hear about (no pause, nothing to do)
   //  - handback: the company has run out of options ("final offer", or the same offer twice).
@@ -160,7 +160,7 @@ export function Dashboard({
         kind: 'handback',
         amount,
         title: amount ? `${airline} says £${amount} is the most they can offer` : `${airline} says they have nothing more to offer`,
-        detail: `Counterbot has held out as far as it can. ${amount ? (amount >= goalGbp ? 'That meets your goal.' : amount >= floorGbp ? `That is above your £${floorGbp} minimum but below your £${goalGbp} goal.` : `That is below your £${floorGbp} minimum, so if Counterbot pushes on, ${airline} will probably end the talks.`) : ''} The next move is yours.`.replace('  ', ' '),
+        detail: `Haggis has held out as far as it can. ${amount ? (amount >= goalGbp ? 'That meets your goal.' : amount >= floorGbp ? `That is above your £${floorGbp} minimum but below your £${goalGbp} goal.` : `That is below your £${floorGbp} minimum, so if Haggis pushes on, ${airline} will probably end the talks.`) : ''} The next move is yours.`.replace('  ', ' '),
       })
       pauseNegotiation(id).catch(() => {})
       return
@@ -177,8 +177,8 @@ export function Dashboard({
                 kind: 'info',
                 title: voucher ? `${airline} offered a £${o.amount_gbp} voucher instead of money` : `${airline} offered £${o.amount_gbp} cash`,
                 detail: voucher
-                  ? 'A voucher is not compensation. Counterbot is pushing back and holding out for cash. No action needed.'
-                  : `That is below your £${floorGbp} minimum. Counterbot is pushing back and holding your line. No action needed.`,
+                  ? 'A voucher is not compensation. Haggis is pushing back and holding out for cash. No action needed.'
+                  : `That is below your £${floorGbp} minimum. Haggis is pushing back and holding your line. No action needed.`,
               },
         )
         break
@@ -188,7 +188,7 @@ export function Dashboard({
   const rawStatus = n.rawStatus?.status
   const notice =
     rawStatus === 'awaiting_call' || rawStatus === 'on_call'
-      ? { tone: 'sky', text: `${caseData?.airline ?? 'The airline'} wants to settle this over the phone. Counterbot will take the call, and you can follow it live below.` }
+      ? { tone: 'sky', text: `${caseData?.airline ?? 'The airline'} wants to settle this over the phone. Haggis will take the call, and you can follow it live below.` }
       : rawStatus === 'walked_away' || rawStatus === 'failed'
         ? { tone: 'rose', text: 'The talks ended without a deal. Nothing has been accepted on your behalf.' }
         : null
@@ -216,7 +216,7 @@ export function Dashboard({
         ? waitingOnHuman
           ? null
           : { sender: lastTheirs?.sender ?? 'company_bot', sender_label: lastTheirs?.sender_label ?? 'Support' }
-        : { sender: 'customer_bot' as const, sender_label: 'Counterbot (for Alex)' }
+        : { sender: 'customer_bot' as const, sender_label: `Haggis the Wise (for ${caseData?.passenger_name.split(' ')[0] ?? 'you'})` }
       : null)
   // The human-agent controls live here too, once the mock bot has handed the chat over.
   // The companion stands on the right while it is working, and says what it is doing.
@@ -360,7 +360,7 @@ export function Dashboard({
           {!id || finished ? (
             <>
               <button onClick={start} disabled={busy} className="px-btn font-pixel bg-amber-300 px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
-                {finished ? 'Run again' : 'Start Counterbot'}
+                {finished ? 'Run again' : 'Send in Haggis'}
               </button>
               <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm" aria-label="Speed">
                 <option value={1}>1× speed</option>
@@ -472,7 +472,7 @@ export function Dashboard({
               <span className="relative inline-flex size-3 rounded-full bg-white" />
             </span>
             <p className="font-semibold">Human reached.</p>
-            <p className="text-sm text-emerald-50">The bot wall is down. Counterbot is now negotiating with a person.</p>
+            <p className="text-sm text-emerald-50">The bot wall is down. Haggis is now negotiating with a person.</p>
           </div>
         )}
 
@@ -503,7 +503,7 @@ export function Dashboard({
                 messages={chatMessages}
                 mine={['customer_bot', 'customer']}
                 typing={typing}
-                empty={id ? 'Connecting…' : 'Press Start and Counterbot takes it from here.'}
+                empty={id ? 'Connecting…' : 'Press Start and Haggis takes it from here.'}
               />
             </div>
             {agentLive && status !== 'paused' && (
@@ -536,7 +536,7 @@ export function Dashboard({
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="You are stepping in. Type as Alex…"
+                  placeholder={`You are stepping in. Type as ${caseData?.passenger_name.split(' ')[0] ?? 'the customer'}…`}
                   className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                 />
                 <button disabled={busy || !draft.trim()} className="px-btn font-pixel bg-amber-300 px-4 py-2 text-sm text-slate-900 uppercase disabled:opacity-40">
