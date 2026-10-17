@@ -83,7 +83,7 @@ export function TacticBoard({
             const done = n < stage
             const here = n === stage
             const look = here
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-2 ring-indigo-300 ring-offset-1'
+              ? 'bg-indigo-600 text-white ring-2 ring-indigo-300 ring-offset-1'
               : done
                 ? 'bg-indigo-100 text-indigo-800'
                 : 'bg-slate-100 text-slate-400'

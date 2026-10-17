@@ -24,7 +24,7 @@ export function ReportCard({ report }: { report: Report }) {
             {won ? 'Claim won' : report.outcome === 'walked_away' ? 'Walked away' : 'Run failed'}
             {report.resolved_on !== 'none' && ` · settled on the ${report.resolved_on}`}
           </p>
-          <p className="text-5xl font-bold tabular-nums">
+          <p className="font-serif text-6xl font-medium tabular-nums">
             £{report.amount_gbp}
             {report.offer_type !== 'none' && <span className="ml-2 text-xl font-medium opacity-80">{report.offer_type}</span>}
           </p>

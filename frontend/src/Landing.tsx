@@ -48,7 +48,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <header className="flex items-center gap-3 bg-slate-900 px-6 py-3 text-white">
-        <a href="#/" className="text-lg font-bold tracking-tight">
+        <a href="#/" className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
         </a>
         <p className="hidden text-sm text-slate-400 sm:block">We read the small print, so you don't have to.</p>
@@ -56,7 +56,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">How can we help?</h2>
+          <h2 className="font-serif text-5xl leading-[1.05] font-medium tracking-tight">How can we help?</h2>
           <p className="mt-2 text-slate-600">
             Tell us what happened, in your own words, and share anything you have. We'll look through it with you and see what you may be owed.
           </p>

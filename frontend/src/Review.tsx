@@ -31,7 +31,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <header className="flex items-center gap-3 bg-slate-900 px-6 py-3 text-white">
-        <h1 className="text-lg font-bold tracking-tight">
+        <h1 className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
         </h1>
         <button onClick={onBack} className="ml-auto text-xs font-medium text-slate-400 hover:text-white">
@@ -43,7 +43,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
         {!ready ? (
           <section className="flex flex-col gap-5 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight">Taking a look at your case…</h2>
+              <h2 className="font-serif text-3xl font-medium tracking-tight">Taking a look at your case…</h2>
               <p className="mt-1 text-sm text-slate-500">This only takes a moment.</p>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
@@ -72,7 +72,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
             <section className="flex flex-col gap-4 rounded-2xl bg-white p-6 ring-2 ring-emerald-500">
               <div>
                 <p className="text-sm font-medium text-emerald-700">Good news, {c.passenger_name.split(' ')[0]}</p>
-                <h2 className="text-2xl font-bold tracking-tight">We found that your flight really was delayed.</h2>
+                <h2 className="font-serif text-4xl leading-tight font-medium tracking-tight">We found that your flight really was delayed.</h2>
               </div>
               <p className="leading-relaxed text-slate-700">
                 Your {c.airline} flight {c.flight_number} from {c.origin} to {c.destination} was due at {time(c.scheduled_arrival)} and landed at{' '}
@@ -82,11 +82,11 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-emerald-50 p-4 text-center ring-1 ring-emerald-200">
                   <p className="text-xs font-medium text-emerald-700">What we'll ask for</p>
-                  <p className="text-3xl font-bold text-emerald-900 tabular-nums">£{c.goal_gbp}</p>
+                  <p className="font-serif text-5xl font-medium text-emerald-900 tabular-nums">£{c.goal_gbp}</p>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-4 text-center ring-1 ring-slate-200">
                   <p className="text-xs font-medium text-slate-600">We won't settle for less than</p>
-                  <p className="text-3xl font-bold text-slate-800 tabular-nums">£{c.floor_gbp}</p>
+                  <p className="font-serif text-5xl font-medium text-slate-800 tabular-nums">£{c.floor_gbp}</p>
                 </div>
               </div>
             </section>

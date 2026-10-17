@@ -48,9 +48,8 @@ export function CallPanel({
     <section className="overflow-hidden rounded-2xl bg-slate-900 text-white ring-1 ring-slate-800">
       <div className="flex flex-wrap items-center gap-4 p-5">
         <span className="relative flex size-12 items-center justify-center rounded-full bg-emerald-500 text-2xl">
-          {(waiting || live) && <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-40" />}
-          <span className="relative" aria-hidden>
-            ☎
+                    <span className="relative text-[11px] font-semibold tracking-[0.12em] uppercase" aria-hidden>
+            Call
           </span>
         </span>
         <div className="min-w-0 flex-1">

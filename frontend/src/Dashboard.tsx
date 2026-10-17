@@ -73,7 +73,7 @@ function CaseSummary({ c, claim }: { c: Case; claim: Claim | null }) {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {claim.files.map((f) => (
                   <span key={f.name + f.size} className="rounded-full bg-white px-2.5 py-0.5 text-xs ring-1 ring-slate-200">
-                    📎 {f.name}
+                    {f.name}
                   </span>
                 ))}
               </div>
@@ -84,11 +84,11 @@ function CaseSummary({ c, claim }: { c: Case; claim: Claim | null }) {
       <div className="flex gap-3 self-start">
         <div className="rounded-xl bg-indigo-50 px-4 py-3 text-center">
           <p className="text-xs font-medium text-indigo-700">Goal</p>
-          <p className="text-2xl font-bold text-indigo-900 tabular-nums">£{c.goal_gbp}</p>
+          <p className="font-serif text-3xl font-medium text-indigo-900 tabular-nums">£{c.goal_gbp}</p>
         </div>
         <div className="rounded-xl bg-slate-100 px-4 py-3 text-center">
           <p className="text-xs font-medium text-slate-600">Floor</p>
-          <p className="text-2xl font-bold text-slate-800 tabular-nums">£{c.floor_gbp}</p>
+          <p className="font-serif text-3xl font-medium text-slate-800 tabular-nums">£{c.floor_gbp}</p>
         </div>
       </div>
     </section>
@@ -265,7 +265,7 @@ export function Dashboard({
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <header className="flex flex-wrap items-center gap-3 bg-slate-900 px-6 py-3 text-white">
-        <h1 className="text-lg font-bold tracking-tight">
+        <h1 className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
         </h1>
         <p className="hidden text-sm text-slate-400 sm:block">We read the small print, so you don't have to.</p>
@@ -336,7 +336,7 @@ export function Dashboard({
         {finished && !report && !error && <div className="h-28 animate-pulse rounded-2xl bg-emerald-100" />}
 
         {decision && (
-          <div role="alert" className="flex flex-wrap items-center gap-4 rounded-2xl bg-amber-500 px-5 py-4 text-amber-950 shadow-lg shadow-amber-500/30">
+          <div role="alert" className="flex flex-wrap items-center gap-4 rounded-2xl bg-amber-500 px-5 py-4 text-amber-950">
             <span className="relative flex size-3">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-950 opacity-60" />
               <span className="relative inline-flex size-3 rounded-full bg-amber-950" />
@@ -369,7 +369,7 @@ export function Dashboard({
         )}
 
         {n.humanReached && !finished && (
-          <div className="flex items-center gap-3 rounded-2xl bg-emerald-600 px-5 py-4 text-white shadow-lg shadow-emerald-600/20">
+          <div className="flex items-center gap-3 rounded-2xl bg-emerald-600 px-5 py-4 text-white">
             <span className="relative flex size-3">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-75" />
               <span className="relative inline-flex size-3 rounded-full bg-white" />
