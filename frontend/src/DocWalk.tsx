@@ -11,7 +11,8 @@ const SPOTS: [number, number][] = [
 ]
 // Counterbot stands beside a document, on the side facing the middle of the screen.
 const standBeside = ([x, y]: [number, number]): [number, number] => [x > 50 ? x - 9 : x + 9, y + 5]
-const HOME: [number, number] = [91, 90]
+// Counterbot's home: exactly where the companion stands, bottom-right (sprite 80px wide, 16px margin).
+const home = (): [number, number] => [((window.innerWidth - 56) / window.innerWidth) * 100, ((window.innerHeight - 16) / window.innerHeight) * 100]
 export const TRAVEL_MS = 1300
 export const READ_MS = 1100
 export const walkDuration = (n: number) => Math.min(n, SPOTS.length) * (TRAVEL_MS + READ_MS) + TRAVEL_MS
@@ -21,7 +22,7 @@ const short = (s: string) => (s.length > 24 ? s.slice(0, 21) + '…' : s)
 // Counterbot walks around the screen, reads each document and collects it.
 export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }) {
   const shown = docs.slice(0, SPOTS.length)
-  const [pos, setPos] = useState<[number, number]>(HOME)
+  const [pos, setPos] = useState<[number, number]>(home)
   const [face, setFace] = useState(1)
   const [walking, setWalking] = useState(false)
   const [reading, setReading] = useState(-1)
@@ -35,7 +36,7 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
     }
     const timers: number[] = []
     let t = 300
-    let at: [number, number] = HOME
+    let at: [number, number] = home()
     const go = (to: [number, number]) => {
       timers.push(
         window.setTimeout(() => {
@@ -59,7 +60,7 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
         }, t),
       )
     })
-    go(HOME)
+    go(home())
     timers.push(window.setTimeout(onDone, t))
     return () => timers.forEach((id) => window.clearTimeout(id))
     // run once per mount
@@ -92,7 +93,7 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
           <span className="px-panel mb-2 max-w-[13rem] px-2.5 py-1.5 text-center text-xs font-bold text-slate-900">Reading {short(shown[reading])}…</span>
         )}
         <span style={{ display: 'inline-block', transform: `scaleX(${face})` }}>
-          <CounterbotSprite scale={5} walking={walking} mood={reading >= 0 ? 'think' : 'idle'} />
+          <CounterbotSprite scale={4} walking={walking} mood={reading >= 0 ? 'think' : 'idle'} />
         </span>
       </div>
 

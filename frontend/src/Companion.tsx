@@ -35,6 +35,16 @@ export function Companion() {
     return () => window.removeEventListener('resize', onResize)
   }, [corner])
 
+  // His home is the bottom-right corner: on every new page he goes back there.
+  useEffect(() => {
+    const home = () => {
+      setCorner('br')
+      setPos(spot('br'))
+    }
+    window.addEventListener('hashchange', home)
+    return () => window.removeEventListener('hashchange', home)
+  }, [])
+
   useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), [])
 
   const next = () => {
