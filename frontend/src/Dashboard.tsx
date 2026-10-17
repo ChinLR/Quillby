@@ -9,7 +9,6 @@ import {
   resumeNegotiation,
   sendAgentReply,
   sendTakeover,
-  setAutoAgent,
   startNegotiation,
 } from './api'
 import type { Case, Report } from './api'
@@ -319,12 +318,6 @@ export function Dashboard({
       setAgentDraft('')
       await refresh()
     })
-  const toggleAuto = () =>
-    run(async () => {
-      if (!inbox) return
-      await setAutoAgent(!inbox.auto_agent)
-      await refresh()
-    })
 
   const started = useRef(false)
   useEffect(() => {
@@ -385,20 +378,6 @@ export function Dashboard({
             <button onClick={() => run(() => pauseNegotiation(id))} disabled={busy} className="px-btn font-pixel bg-white px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
               Step in
             </button>
-          )}
-          {agentLive && inbox && (
-            <label className="ml-2 flex items-center gap-2 text-sm text-slate-600">
-              Scripted agent (Sam)
-              <button
-                role="switch"
-                aria-checked={inbox.auto_agent}
-                disabled={busy}
-                onClick={toggleAuto}
-                className={`relative h-6 w-11 rounded-full transition-colors ${inbox.auto_agent ? 'bg-emerald-500' : 'bg-slate-300'}`}
-              >
-                <span className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${inbox.auto_agent ? 'translate-x-5' : ''}`} />
-              </button>
-            </label>
           )}
           {id && (
             <button onClick={reset} disabled={busy} className="px-btn font-pixel ml-auto bg-white px-4 py-2 text-xs text-slate-900 uppercase disabled:opacity-50">
@@ -524,7 +503,7 @@ export function Dashboard({
                 <input
                   value={agentDraft}
                   onChange={(e) => setAgentDraft(e.target.value)}
-                  placeholder={inbox?.auto_agent ? 'Reply as the airline agent (turns the scripted agent off)…' : 'Reply as the airline agent (Sam)…'}
+                  placeholder="Reply as the airline agent…"
                   className="min-w-0 flex-1 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
                 />
                 <button disabled={busy || !agentDraft.trim()} className="px-btn font-pixel bg-amber-300 px-4 py-2 text-sm text-slate-900 uppercase disabled:opacity-40">
