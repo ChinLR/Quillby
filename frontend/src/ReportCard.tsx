@@ -11,6 +11,7 @@ export function ReportCard({ report }: { report: Report }) {
     ['Goal', `£${report.goal_gbp}`],
     ['Floor', `£${report.floor_gbp}`],
     ['Bot run time', fmtDuration(report.duration_seconds)],
+    ...(report.call_duration_seconds > 0 ? [['Call length', fmtDuration(report.call_duration_seconds)]] : []),
     ['Messages sent for you', String(report.bot_message_count)],
     ['Time saved (estimate)', `~${report.estimated_minutes_saved} min`],
   ]
@@ -19,7 +20,10 @@ export function ReportCard({ report }: { report: Report }) {
     <section className={`overflow-hidden rounded-2xl ring-1 ${won ? 'bg-emerald-600 ring-emerald-700' : 'bg-slate-800 ring-slate-900'} text-white`}>
       <div className="flex flex-wrap items-end justify-between gap-4 p-6">
         <div>
-          <p className="text-sm font-medium opacity-80">{won ? 'Claim won' : report.outcome === 'walked_away' ? 'Walked away' : 'Run failed'}</p>
+          <p className="text-sm font-medium opacity-80">
+            {won ? 'Claim won' : report.outcome === 'walked_away' ? 'Walked away' : 'Run failed'}
+            {report.resolved_on !== 'none' && ` · settled on the ${report.resolved_on}`}
+          </p>
           <p className="text-5xl font-bold tabular-nums">
             £{report.amount_gbp}
             {report.offer_type !== 'none' && <span className="ml-2 text-xl font-medium opacity-80">{report.offer_type}</span>}

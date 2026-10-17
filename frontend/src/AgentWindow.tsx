@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getInbox, sendAgentReply, setAutoAgent } from './api'
 import type { Inbox } from './api'
 import { Chat } from './Chat'
+import { ConcessionLadder } from './ConcessionLadder'
 
 export function AgentWindow() {
   const [inbox, setInbox] = useState<Inbox | null>(null)
@@ -50,7 +51,7 @@ export function AgentWindow() {
       setDraft('')
     })
 
-  const handedOff = inbox?.handed_off ?? false
+  const handedOff = (inbox?.handed_off ?? false) && !inbox?.call_number
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-100 text-zinc-900">
@@ -59,7 +60,7 @@ export function AgentWindow() {
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${handedOff ? 'bg-emerald-100 text-emerald-800' : idle ? 'bg-zinc-100 text-zinc-500' : 'bg-amber-100 text-amber-800'}`}
         >
-          {handedOff ? 'Chat assigned to you' : idle ? 'No active chat' : 'Bot is handling the chat'}
+          {inbox?.call_number ? 'Call the number below' : handedOff ? 'Chat assigned to you' : idle ? 'No active chat' : 'Bot is handling the chat'}
         </span>
         {inbox && (
           <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm">
@@ -86,6 +87,12 @@ export function AgentWindow() {
               empty={idle ? 'Waiting for a customer. Start a run on the dashboard.' : 'Loading chat…'}
             />
           </div>
+          {inbox?.call_number && (
+            <div className="border-t border-emerald-300 bg-emerald-600 px-4 py-4 text-center text-white">
+              <p className="text-sm font-medium">Call this number now (on speaker)</p>
+              <p className="text-4xl font-bold tracking-wide tabular-nums">{inbox.call_number}</p>
+            </div>
+          )}
           {error && <p className="bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</p>}
           <form
             onSubmit={(e) => {
@@ -112,19 +119,7 @@ export function AgentWindow() {
             <h2 className="text-sm font-semibold text-amber-900">Concession ladder</h2>
             <p className="text-xs text-amber-800/70">Agent eyes only. Free wording, amounts in order.</p>
           </div>
-          <ol className="flex flex-col gap-2">
-            {(inbox?.cheat_sheet ?? []).map((s) => (
-              <li key={s.step} className="rounded-lg bg-white p-3 ring-1 ring-amber-200">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-medium text-amber-700">Step {s.step}</span>
-                  <span className="font-bold tabular-nums">
-                    £{s.amount_gbp} <span className="text-xs font-medium text-zinc-500">{s.offer_type}</span>
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-zinc-600">{s.condition}</p>
-              </li>
-            ))}
-          </ol>
+          <ConcessionLadder steps={inbox?.cheat_sheet ?? []} offers={[]} />
           {!inbox && <p className="text-xs text-amber-800/70">Appears when a chat is active.</p>}
         </aside>
       </main>

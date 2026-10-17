@@ -41,7 +41,11 @@ export function TacticBoard({
   offers,
   humanReached,
   floor,
+  ladder,
+  started,
 }: {
+  started: boolean
+  ladder?: React.ReactNode
   tactics: Tactic[]
   tactic: Tactic | null
   pressure: number
@@ -50,7 +54,7 @@ export function TacticBoard({
   humanReached: boolean
   floor: number
 }) {
-  const stage = tactic?.stage ?? 0
+  const stage = tactic?.stage ?? (started ? 1 : 0)
   const pressureTone = pressure >= 85 ? 'bg-rose-500' : pressure >= 45 ? 'bg-amber-500' : 'bg-indigo-500'
 
   return (
@@ -76,16 +80,33 @@ export function TacticBoard({
         <ol className="grid grid-cols-6 gap-1">
           {STAGES.map((name, i) => {
             const n = i + 1
-            const state = n < stage ? 'bg-indigo-200 text-indigo-900' : n === stage ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'
+            const done = n < stage
+            const here = n === stage
+            const look = here
+              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-2 ring-indigo-300 ring-offset-1'
+              : done
+                ? 'bg-indigo-100 text-indigo-800'
+                : 'bg-slate-100 text-slate-400'
             return (
-              <li key={name} className={`rounded-md px-1 py-2 text-center text-[11px] leading-tight font-medium ${state}`} title={name}>
-                <div className="font-bold">{n}</div>
+              <li key={name} className={`rounded-md px-1 py-2 text-center text-[11px] leading-tight font-medium transition-all duration-300 ${look}`} title={name} aria-current={here ? 'step' : undefined}>
+                <div className="font-bold">{done ? '✓' : n}</div>
                 {name}
               </li>
             )
           })}
         </ol>
+        <p className="text-xs text-slate-500">
+          {stage > 0 ? (
+            <>
+              <b className="text-indigo-700">You are here:</b> stage {stage} of 6, {STAGES[stage - 1]}
+            </>
+          ) : (
+            'Not started'
+          )}
+        </p>
       </Section>
+
+      {ladder}
 
       <Section title={`Pressure · ${pressure}/100`}>
         <Meter value={pressure} tone={pressureTone} />

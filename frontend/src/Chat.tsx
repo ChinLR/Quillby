@@ -19,13 +19,15 @@ export function Chat({
 }: {
   messages: Message[]
   mine: Sender[]
-  typing?: boolean
+  // Who is "typing" right now (the three dots appear on that side). null/undefined = nobody.
+  typing?: Pick<Message, 'sender' | 'sender_label'> | null
   empty: string
 }) {
   const end = useRef<HTMLDivElement>(null)
+  const typingKey = typing?.sender ?? ''
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }, [messages.length, typing])
+  }, [messages.length, typingKey])
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto bg-slate-50 p-4">
@@ -62,11 +64,21 @@ export function Chat({
           </div>
         )
       })}
-      {typing && (
-        <div className="flex gap-1 self-start rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-200" aria-label="Typing">
-          {[0, 150, 300].map((d) => (
-            <span key={d} className="size-1.5 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: `${d}ms` }} />
-          ))}
+      {typing && typing.sender !== 'system' && typing.sender !== 'customer' && (
+        <div className={`flex flex-col gap-1 ${mine.includes(typing.sender) ? 'items-end self-end' : 'items-start'}`}>
+          <span className="px-1 text-xs font-medium text-slate-500">{typing.sender_label} is typing</span>
+          <div
+            className={`flex gap-1 rounded-2xl px-4 py-3 ${mine.includes(typing.sender) ? 'bg-indigo-600' : 'bg-white ring-1 ring-slate-200'}`}
+            aria-label={`${typing.sender_label} is typing`}
+          >
+            {[0, 150, 300].map((d) => (
+              <span
+                key={d}
+                className={`size-1.5 animate-bounce rounded-full ${mine.includes(typing.sender) ? 'bg-indigo-200' : 'bg-slate-400'}`}
+                style={{ animationDelay: `${d}ms` }}
+              />
+            ))}
+          </div>
         </div>
       )}
       <div ref={end} />

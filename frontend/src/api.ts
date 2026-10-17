@@ -13,6 +13,9 @@ export type Report = S['Report']
 export type Inbox = S['Inbox']
 export type ConcessionStep = S['ConcessionStep']
 export type StartRequest = S['StartRequest']
+export type CallState = S['CallState']
+export type IntakeResult = S['IntakeResult']
+export type IntakeRequest = S['IntakeRequest']
 
 export async function api<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -30,7 +33,8 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
 export const getHealth = () => api<S['HealthResponse']>('/health')
 export const getCase = () => api<Case>('/case')
 export const startNegotiation = (body: StartRequest) => api<NegotiationState>('/negotiations', body)
-export const getHistory = (id: string, after: number) =>
+export const getNegotiation = (id: string) => api<NegotiationState>(`/negotiations/${id}`)
+export const getHistory =(id: string, after: number) =>
   api<S['History']>(`/negotiations/${id}/history?after=${after}`)
 export const pauseNegotiation = (id: string) => api<NegotiationState>(`/negotiations/${id}/pause`, {})
 export const resumeNegotiation = (id: string) => api<NegotiationState>(`/negotiations/${id}/resume`, {})
@@ -42,3 +46,8 @@ export const eventsUrl = (id: string) => `/api/negotiations/${id}/events`
 export const getInbox = () => api<Inbox>('/company/inbox')
 export const sendAgentReply = (text: string) => api<Message>('/company/reply', { text })
 export const setAutoAgent = (enabled: boolean) => api<S['AutoAgentResponse']>('/company/auto-agent', { enabled })
+
+export const submitIntake = (body: IntakeRequest) => api<IntakeResult>('/intake', body)
+export const getCall = (id: string) => api<CallState>(`/negotiations/${id}/call`)
+export const recordCallOutcome = (id: string, amount_gbp: number, offer_type: 'cash' | 'voucher' | 'none') =>
+  api<NegotiationState>(`/negotiations/${id}/call/outcome`, { amount_gbp, offer_type })

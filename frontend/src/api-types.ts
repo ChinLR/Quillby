@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/intake": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Intake */
+        post: operations["post_intake_api_intake_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/negotiations": {
         parameters: {
             query?: never;
@@ -177,6 +194,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/negotiations/{nid}/call": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Call */
+        get: operations["get_call_api_negotiations__nid__call_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/negotiations/{nid}/call/outcome": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Call Outcome */
+        post: operations["post_call_outcome_api_negotiations__nid__call_outcome_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/reset": {
         parameters: {
             query?: never;
@@ -259,6 +310,41 @@ export interface components {
             /** Auto Agent */
             auto_agent: boolean;
         };
+        /** CallOutcomeBody */
+        CallOutcomeBody: {
+            /** Amount Gbp */
+            amount_gbp: number;
+            /**
+             * Offer Type
+             * @enum {string}
+             */
+            offer_type: "cash" | "voucher" | "none";
+        };
+        /** CallState */
+        CallState: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "waiting" | "in_progress" | "processing" | "done" | "failed";
+            /** Phone Number */
+            phone_number: string;
+            /**
+             * Conversation Id
+             * @default
+             */
+            conversation_id: string;
+            /**
+             * Duration Seconds
+             * @default 0
+             */
+            duration_seconds: number;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+        };
         /** Case */
         Case: {
             /** Id */
@@ -288,6 +374,16 @@ export interface components {
             /** Floor Gbp */
             floor_gbp: number;
             legal: components["schemas"]["Legal"];
+            /**
+             * Complaint Type
+             * @default flight_delay
+             */
+            complaint_type: string;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
         };
         /** ConcessionStep */
         ConcessionStep: {
@@ -297,11 +393,16 @@ export interface components {
              * Offer Type
              * @enum {string}
              */
-            offer_type: "voucher" | "cash";
+            offer_type: "voucher" | "cash" | "call";
             /** Amount Gbp */
             amount_gbp: number;
             /** Condition */
             condition: string;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "chat" | "call";
         };
         /** Detection */
         Detection: {
@@ -323,12 +424,13 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "message" | "tactic" | "detection" | "offer" | "status";
+            type: "message" | "tactic" | "detection" | "offer" | "status" | "call";
             message?: components["schemas"]["Message"] | null;
             tactic?: components["schemas"]["Tactic"] | null;
             detection?: components["schemas"]["Detection"] | null;
             offer?: components["schemas"]["Offer"] | null;
             status?: components["schemas"]["StatusUpdate"] | null;
+            call?: components["schemas"]["CallState"] | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -359,6 +461,25 @@ export interface components {
             messages: components["schemas"]["Message"][];
             /** Cheat Sheet */
             cheat_sheet: components["schemas"]["ConcessionStep"][];
+            /** Call Number */
+            call_number: string;
+        };
+        /** IntakeRequest */
+        IntakeRequest: {
+            /** Description */
+            description: string;
+            /** Goal Gbp */
+            goal_gbp?: number | null;
+            /** Floor Gbp */
+            floor_gbp?: number | null;
+        };
+        /** IntakeResult */
+        IntakeResult: {
+            /** Supported */
+            supported: boolean;
+            /** Note */
+            note: string;
+            case: components["schemas"]["Case"];
         };
         /** Legal */
         Legal: {
@@ -396,6 +517,12 @@ export interface components {
             typing_ms: number;
             /** Created At */
             created_at: string;
+            /**
+             * Channel
+             * @default chat
+             * @enum {string}
+             */
+            channel: "chat" | "call";
         };
         /** NegotiationState */
         NegotiationState: {
@@ -405,7 +532,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "running" | "paused" | "won" | "walked_away" | "failed";
+            status: "running" | "paused" | "awaiting_call" | "on_call" | "won" | "walked_away" | "failed";
             /** Human Reached */
             human_reached: boolean;
             /** Stage */
@@ -469,6 +596,13 @@ export interface components {
             stages_reached: string[];
             /** Transcript */
             transcript: components["schemas"]["Message"][];
+            /**
+             * Resolved On
+             * @enum {string}
+             */
+            resolved_on: "chat" | "call" | "none";
+            /** Call Duration Seconds */
+            call_duration_seconds: number;
         };
         /** StartRequest */
         StartRequest: {
@@ -488,7 +622,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "running" | "paused" | "won" | "walked_away" | "failed";
+            status: "running" | "paused" | "awaiting_call" | "on_call" | "won" | "walked_away" | "failed";
             /** Human Reached */
             human_reached: boolean;
             /**
@@ -573,6 +707,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Case"];
+                };
+            };
+        };
+    };
+    post_intake_api_intake_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IntakeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntakeResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -820,6 +987,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Report"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_call_api_negotiations__nid__call_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_call_outcome_api_negotiations__nid__call_outcome_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CallOutcomeBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NegotiationState"];
                 };
             };
             /** @description Validation Error */

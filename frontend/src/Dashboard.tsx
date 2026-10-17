@@ -1,17 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   getCase,
   getReport,
   pauseNegotiation,
+  recordCallOutcome,
   resetDemo,
   resumeNegotiation,
+  sendAgentReply,
   sendTakeover,
+  setAutoAgent,
   startNegotiation,
 } from './api'
 import type { Case, Report } from './api'
+import { CallPanel } from './CallPanel'
 import { Chat } from './Chat'
+import { ConcessionLadder } from './ConcessionLadder'
+import type { Claim } from './Landing'
 import { ReportCard } from './ReportCard'
 import { TacticBoard } from './TacticBoard'
+import { useInbox } from './useInbox'
 import { useNegotiation } from './useNegotiation'
 
 const ID_KEY = 'counterbot.negotiation'
@@ -36,7 +43,7 @@ const store = {
 const time = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const delay = (m: number) => `${Math.floor(m / 60)}h ${m % 60}m`
 
-function CaseSummary({ c }: { c: Case }) {
+function CaseSummary({ c, claim }: { c: Case; claim: Claim | null }) {
   return (
     <section className="grid gap-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200 md:grid-cols-[1fr_auto]">
       <div className="flex flex-col gap-1">
@@ -59,6 +66,21 @@ function CaseSummary({ c }: { c: Case }) {
           </ul>
           <p className="mt-2 text-xs text-slate-400">{c.legal.disclaimer}</p>
         </details>
+        {claim && (
+          <div className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Your account</p>
+            <p className="mt-0.5">“{claim.description}”</p>
+            {claim.files.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {claim.files.map((f) => (
+                  <span key={f.name + f.size} className="rounded-full bg-white px-2.5 py-0.5 text-xs ring-1 ring-slate-200">
+                    📎 {f.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex gap-3 self-start">
         <div className="rounded-xl bg-indigo-50 px-4 py-3 text-center">
@@ -74,7 +96,17 @@ function CaseSummary({ c }: { c: Case }) {
   )
 }
 
-export function Dashboard() {
+export function Dashboard({
+  claim,
+  autoStart,
+  onStarted,
+  onNewClaim,
+}: {
+  claim: Claim | null
+  autoStart: boolean
+  onStarted: () => void
+  onNewClaim: () => void
+}) {
   const [caseData, setCaseData] = useState<Case | null>(null)
   const [id, setId] = useState<string | null>(store.get)
   const [report, setReport] = useState<Report | null>(null)
@@ -82,10 +114,31 @@ export function Dashboard() {
   const [busy, setBusy] = useState(false)
   const [speed, setSpeed] = useState(1)
   const [draft, setDraft] = useState('')
-  const n = useNegotiation(id)
+  const [agentDraft, setAgentDraft] = useState('')
+  const n = useNegotiation(id, speed)
+  const { inbox, refresh } = useInbox(!!id)
 
   const status = n.status?.status ?? (id ? 'running' : null)
   const finished = status === 'won' || status === 'walked_away' || status === 'failed'
+  const callPhase = status === 'awaiting_call' || status === 'on_call'
+  const chatMessages = n.messages.filter((m) => m.channel !== 'call')
+  const callLines = n.messages.filter((m) => m.channel === 'call')
+  // Three dots: the next queued message's sender, or (while the backend is still thinking)
+  // the other side of the last message. No guess when a live human agent is the one to reply.
+  const last = chatMessages.at(-1)
+  const waitingOnHuman = !!inbox?.handed_off && !inbox.auto_agent
+  const lastTheirs = [...chatMessages].reverse().find((m) => m.sender === 'company_bot' || m.sender === 'human_agent')
+  const typing =
+    n.pending ??
+    (status === 'running' && last && !n.catchingUp
+      ? last.sender === 'customer_bot' || last.sender === 'customer'
+        ? waitingOnHuman
+          ? null
+          : { sender: lastTheirs?.sender ?? 'company_bot', sender_label: lastTheirs?.sender_label ?? 'Support' }
+        : { sender: 'customer_bot' as const, sender_label: 'Counterbot (for Alex)' }
+      : null)
+  // The human-agent controls live here too, once the mock bot has handed the chat over.
+  const agentLive = !!inbox?.handed_off && n.humanReached && !finished && !callPhase && !inbox.call_number
 
   useEffect(() => {
     getCase().then(setCaseData).catch((e) => setError(e.message))
@@ -119,6 +172,11 @@ export function Dashboard() {
       await resetDemo()
       store.set(null)
       setId(null)
+      onNewClaim()
+    })
+  const recordOutcome = (amount: number, type: 'cash' | 'none') =>
+    run(async () => {
+      if (id) await recordCallOutcome(id, amount, type)
     })
   const takeover = () =>
     run(async () => {
@@ -126,6 +184,29 @@ export function Dashboard() {
       await sendTakeover(id, draft.trim())
       setDraft('')
     })
+
+  const agentReply = () =>
+    run(async () => {
+      if (!agentDraft.trim()) return
+      await sendAgentReply(agentDraft.trim())
+      setAgentDraft('')
+      await refresh()
+    })
+  const toggleAuto = () =>
+    run(async () => {
+      if (!inbox) return
+      await setAutoAgent(!inbox.auto_agent)
+      await refresh()
+    })
+
+  const started = useRef(false)
+  useEffect(() => {
+    if (!autoStart || started.current) return
+    started.current = true
+    onStarted()
+    start()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart])
 
   // A stored id can be stale after a backend restart; drop it.
   useEffect(() => {
@@ -153,14 +234,11 @@ export function Dashboard() {
             </>
           )}
         </span>
-        <a href="#/agent" target="_blank" rel="noreferrer" className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-medium hover:bg-white/20">
-          Open agent window ↗
-        </a>
       </header>
 
       <main className="mx-auto flex max-w-7xl flex-col gap-4 p-4 md:p-6">
         {caseData ? (
-          <CaseSummary c={caseData} />
+          <CaseSummary c={caseData} claim={claim} />
         ) : (
           !error && <div className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200" />
         )}
@@ -181,10 +259,26 @@ export function Dashboard() {
             <button onClick={() => run(() => resumeNegotiation(id))} disabled={busy} className="rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
               Resume autopilot
             </button>
+          ) : callPhase ? (
+            <p className="text-sm text-slate-500">On the phone: autopilot is handling the call.</p>
           ) : (
             <button onClick={() => run(() => pauseNegotiation(id))} disabled={busy} className="rounded-lg bg-white px-5 py-2.5 font-semibold text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-50">
               Pause / take over
             </button>
+          )}
+          {agentLive && inbox && (
+            <label className="ml-2 flex items-center gap-2 text-sm text-slate-600">
+              Scripted agent (Sam)
+              <button
+                role="switch"
+                aria-checked={inbox.auto_agent}
+                disabled={busy}
+                onClick={toggleAuto}
+                className={`relative h-6 w-11 rounded-full transition-colors ${inbox.auto_agent ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${inbox.auto_agent ? 'translate-x-5' : ''}`} />
+              </button>
+            </label>
           )}
           {id && (
             <button onClick={reset} disabled={busy} className="ml-auto rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-200 disabled:opacity-50">
@@ -209,6 +303,18 @@ export function Dashboard() {
           </div>
         )}
 
+        {(callPhase || callLines.length > 0) && (
+          <CallPanel
+            call={n.call}
+            lines={callLines}
+            airline={caseData?.airline ?? 'The airline'}
+            goal={caseData?.goal_gbp ?? 350}
+            busy={busy}
+            canRecord={callPhase}
+            onRecord={recordOutcome}
+          />
+        )}
+
         <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <section className={`flex h-[600px] flex-col overflow-hidden rounded-2xl bg-white ring-1 ${n.humanReached ? 'ring-2 ring-emerald-500' : 'ring-slate-200'}`}>
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
@@ -221,12 +327,31 @@ export function Dashboard() {
             </div>
             <div className="min-h-0 flex-1">
               <Chat
-                messages={n.messages}
+                messages={chatMessages}
                 mine={['customer_bot', 'customer']}
-                typing={status === 'running' || n.catchingUp}
+                typing={typing}
                 empty={id ? 'Connecting…' : 'Press Start and Counterbot takes it from here.'}
               />
             </div>
+            {agentLive && status !== 'paused' && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  agentReply()
+                }}
+                className="flex gap-2 border-t border-emerald-200 bg-emerald-50 p-3"
+              >
+                <input
+                  value={agentDraft}
+                  onChange={(e) => setAgentDraft(e.target.value)}
+                  placeholder={inbox?.auto_agent ? 'Reply as the airline agent (turns the scripted agent off)…' : 'Reply as the airline agent (Sam)…'}
+                  className="min-w-0 flex-1 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+                />
+                <button disabled={busy || !agentDraft.trim()} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">
+                  Send as agent
+                </button>
+              </form>
+            )}
             {status === 'paused' && (
               <form
                 onSubmit={(e) => {
@@ -260,6 +385,18 @@ export function Dashboard() {
               offers={n.offers}
               humanReached={n.humanReached}
               floor={caseData?.floor_gbp ?? 0}
+              started={!!id}
+              ladder={
+                inbox && inbox.cheat_sheet.length > 0 ? (
+                  <section className="flex flex-col gap-2 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
+                    <div>
+                      <h3 className="text-xs font-semibold tracking-wide text-amber-900 uppercase">Agent concession ladder</h3>
+                      <p className="text-xs text-amber-800/70">What the airline agent is allowed to offer, in order.</p>
+                    </div>
+                    <ConcessionLadder steps={inbox.cheat_sheet} offers={n.offers} />
+                  </section>
+                ) : null
+              }
             />
           </section>
         </div>
