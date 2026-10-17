@@ -95,7 +95,7 @@ const CARDS: Card[] = [
     retreat: 'Loops',
   },
   {
-    name: 'Haggis the Wise',
+    name: 'Quillby',
     kind: 'Wizard',
     stage: 'Basic',
     hp: 120,
@@ -220,7 +220,7 @@ function Hero() {
           </div>
           <h1 className="mt-5 text-4xl leading-[1.04] font-black tracking-tight text-slate-900 sm:text-6xl">
             Companies hide behind bots.
-            <span className="mt-1 block text-[#7a2a14]">Haggis the Wise fights them for you.</span>
+            <span className="mt-1 block text-[#7a2a14]">Quillby fights them for you.</span>
           </h1>
           <button onClick={startClaim} className="px-btn font-pixel mt-6 bg-amber-300 px-8 py-4 text-base text-slate-900 uppercase">
             ▶ Start your claim
@@ -239,7 +239,7 @@ function Hero() {
 
 const STEPS: [string, string, 'book' | 'compass' | 'shield'][] = [
   ['Tell us what happened', 'In your own words. Add any receipts.', 'book'],
-  ['Haggis reads the policy', 'He works out what you are owed, and shows you.', 'compass'],
+  ['Quillby reads the policy', 'He works out what you are owed, and shows you.', 'compass'],
   ['He fights. You get paid.', 'Their bot first, then their human, until you are satisfied.', 'shield'],
 ]
 
@@ -274,7 +274,7 @@ function HowItWorks() {
 }
 
 export function Home() {
-  useAssistantLine("Hi! I'm Haggis the Wise, your assistant. Press start and tell me what happened.", 'idle')
+  useAssistantLine("Hi! I'm Quillby, your assistant. Press start and tell me what happened.", 'idle')
   return (
     <div>
       <Nav />

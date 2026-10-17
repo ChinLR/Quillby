@@ -63,11 +63,11 @@ const PAL = {
   n: '#8a5a3b',
 }
 
-/* ---------- Haggis the Wise: the customer's assistant ---------- */
+/* ---------- Quillby: the customer's assistant ---------- */
 
 export type Mood = 'idle' | 'think' | 'fight' | 'duel' | 'happy' | 'sad'
 
-// Haggis the Wise is a wizard: blue robe and pointed hat with a gold star, white beard, a staff,
+// Quillby is a wizard: blue robe and pointed hat with a gold star, white beard, a staff,
 // and a sword that comes out when he fights. 20 x 24 pixels.
 const WIZARD_COLORS = {
   k: '#241b13',
@@ -248,7 +248,7 @@ export function WizardSprite({
   return (
     <span className={`inline-block ${walking ? 'px-walk' : bob ? 'px-bob' : ''} ${className}`}>
       <span style={{ display: 'inline-block', transformOrigin: '50% 100%', transform: wave === 1 ? 'rotate(-5deg)' : wave === 2 ? 'rotate(5deg)' : undefined }}>
-        <PixelSprite rows={wizardRows(blink, mood, wave)} colors={WIZARD_COLORS} scale={scale} label="Haggis the Wise, your wizard assistant" />
+        <PixelSprite rows={wizardRows(blink, mood, wave)} colors={WIZARD_COLORS} scale={scale} label="Quillby, your wizard assistant" />
       </span>
     </span>
   )

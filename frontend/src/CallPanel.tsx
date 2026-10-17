@@ -4,7 +4,7 @@ import { Chat } from './Chat'
 
 const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
-// The phone phase: Northwind rings Haggis's voice agent, the call transcript lands line by line.
+// The phone phase: Northwind rings Quillby's voice agent, the call transcript lands line by line.
 export function CallPanel({
   call,
   lines,
@@ -56,12 +56,12 @@ export function CallPanel({
           <p className="text-lg font-semibold">{title}</p>
           {waiting && call?.phone_number ? (
             <p className="text-sm text-slate-300">
-              {airline} is calling Haggis on <b className="text-xl tracking-wide text-white tabular-nums">{call.phone_number}</b>
+              {airline} is calling Quillby on <b className="text-xl tracking-wide text-white tabular-nums">{call.phone_number}</b>
             </p>
           ) : waiting ? (
-            <p className="text-sm text-slate-300">{airline} is about to call Haggis.</p>
+            <p className="text-sm text-slate-300">{airline} is about to call Quillby.</p>
           ) : (
-            <p className="text-sm text-slate-300">Haggis's voice agent is negotiating live with {airline}.</p>
+            <p className="text-sm text-slate-300">Quillby's voice agent is negotiating live with {airline}.</p>
           )}
           {call?.detail && <p className="mt-1 text-xs text-amber-300">{call.detail}</p>}
         </div>

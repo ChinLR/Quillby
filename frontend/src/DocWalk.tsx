@@ -18,7 +18,7 @@ export const walkDuration = (n: number) => FIRST_MS + (Math.min(n, EDGES.length)
 const short = (s: string) => (s.length > 24 ? s.slice(0, 21) + '…' : s)
 type Phase = 'wait' | 'fly' | 'gone'
 
-// While Haggis checks the documents he stays in his corner and waves his wand; each document
+// While Quillby checks the documents he stays in his corner and waves his wand; each document
 // flies in from the edge of the screen, spinning, and he catches it in a burst of sparkles.
 export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }) {
   const shown = docs.slice(0, EDGES.length)
@@ -28,7 +28,7 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
   const [burst, setBurst] = useState(0)
   const [last, setLast] = useState('')
 
-  // Pixel positions fixed at mount: where each document starts, and where Haggis stands.
+  // Pixel positions fixed at mount: where each document starts, and where Quillby stands.
   const geo = useMemo(() => {
     const vw = window.innerWidth
     const vh = window.innerHeight
@@ -100,7 +100,7 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
         )
       })}
 
-      {/* Haggis, in his corner, waving his wand for each document */}
+      {/* Quillby, in his corner, waving his wand for each document */}
       <div className="fixed right-4 bottom-4 h-24 w-20">
         {last && (
           <span key={burst} className="px-panel animate-pop-in absolute right-0 bottom-full mb-3 w-max max-w-[14rem] px-2.5 py-1.5 text-center text-xs font-bold text-slate-900">

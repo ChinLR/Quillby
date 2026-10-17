@@ -46,8 +46,8 @@ function Routes() {
       <Review
         claim={claim}
         onBack={() => go('#/start')}
-        onStart={(checkIns) => {
-          setClaim({ ...claim, checkIns })
+        onStart={(checkIns, amounts) => {
+          setClaim({ ...claim, checkIns, ...amounts })
           setAutoStart(true)
           go('#/run')
         }}

@@ -8,9 +8,23 @@ const delay = (m: number) => `${Math.floor(m / 60)}h ${m % 60}m`
 
 // Page two: walks through the case while "reading" it, then says what the customer is likely owed.
 // Figures come from the intake result (case, goal, floor) and the policy summary the backend holds.
-export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (checkIns: CheckIns) => void; onBack: () => void }) {
+export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (checkIns: CheckIns, amounts: { goal: number; floor: number }) => void; onBack: () => void }) {
   const [checkIns, setCheckIns] = useState<CheckIns>({ voucher: true, belowFloor: true })
   const c = claim.result.case
+  // The policy suggests a goal and floor; the customer can change both after reading it.
+  const [goal, setGoal] = useState(String(c.goal_gbp))
+  const [floor, setFloor] = useState(String(c.floor_gbp))
+  const goalN = Number(goal)
+  const floorN = Number(floor)
+  const amountError =
+    goal === '' || floor === '' || !Number.isInteger(goalN) || !Number.isInteger(floorN)
+      ? 'Enter whole pounds for both.'
+      : floorN < 0 || goalN <= 0
+        ? 'Amounts must be above zero.'
+        : floorN > goalN
+          ? 'The lowest you will accept cannot be more than what you ask for.'
+          : ''
+  const changed = goalN !== c.goal_gbp || floorN !== c.floor_gbp
   const docs = claim.files.length
   const steps = [
     docs > 0 ? `Reading your ${docs} document${docs === 1 ? '' : 's'}` : 'Reading what you told us',
@@ -20,7 +34,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
     'Checking the flight delay compensation rules',
     'Working out what you are owed',
   ]
-  // Haggis collects to each document, reads it and collects it. The checklist is paced to finish with it.
+  // Quillby catches each document as it flies in. The checklist is paced to finish with it.
   const docNames = docs > 0 ? claim.files.map((f) => f.name) : ['Your description', `Booking ${c.booking_ref}`, `Flight ${c.flight_number} record`]
   const stepMs = Math.max(1100, Math.round(walkDuration(docNames.length) / steps.length))
   const [done, setDone] = useState(0)
@@ -34,7 +48,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
   }, [done, steps.length, stepMs])
 
   useAssistantLine(
-    ready ? `Found something! You may be owed £${c.goal_gbp}.` : 'Reading your documents…',
+    ready ? `Found something! You may be owed £${c.goal_gbp}. Set your goal below.` : 'Reading your documents…',
     ready ? 'happy' : 'think',
     { place: 'right', hidden: !walkDone },
   )
@@ -90,17 +104,9 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
                 Your {c.airline} flight {c.flight_number} from {c.origin} to {c.destination} was due at {time(c.scheduled_arrival)} and landed at{' '}
                 {time(c.actual_arrival)}. That is <b>{delay(c.delay_minutes)} late</b>, and {c.airline} blamed “{c.airline_reason}”.
               </p>
-              <p className="leading-relaxed text-slate-700">Based on the policy, we can help you get compensation of:</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-emerald-50 p-4 text-center ring-1 ring-emerald-200">
-                  <p className="text-xs font-medium text-emerald-700">What we'll ask for</p>
-                  <p className="font-serif text-5xl font-medium text-emerald-900 tabular-nums">£{c.goal_gbp}</p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4 text-center ring-1 ring-slate-200">
-                  <p className="text-xs font-medium text-slate-600">We won't settle for less than</p>
-                  <p className="font-serif text-5xl font-medium text-slate-800 tabular-nums">£{c.floor_gbp}</p>
-                </div>
-              </div>
+              <p className="leading-relaxed text-slate-700">
+                Based on the policy, you may be owed about <b>£{c.goal_gbp}</b>. Read what the policy says below, then you decide what Quillby asks for.
+              </p>
             </section>
 
             <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
@@ -116,15 +122,68 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
               <p className="text-xs text-slate-400">{c.legal.disclaimer}</p>
             </section>
 
+            <section className="flex flex-col gap-4 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+              <div>
+                <h3 className="text-sm font-semibold">Now set your goal</h3>
+                <p className="text-sm text-slate-500">Choose what Quillby asks for, and the lowest you would accept. We start from what the policy suggests.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {(
+                  [
+                    ['What to ask for', goal, setGoal, `Policy suggests £${c.goal_gbp}`, 'bg-emerald-50 ring-emerald-200 text-emerald-700 text-emerald-900'],
+                    ['Lowest I would accept', floor, setFloor, `Policy suggests £${c.floor_gbp}`, 'bg-slate-50 ring-slate-300 text-slate-600 text-slate-800'],
+                  ] as const
+                ).map(([label, value, set, hint, tone]) => {
+                  const [bg, ring, labelTone, numTone] = tone.split(' ')
+                  return (
+                    <label key={label} className={`flex flex-col items-center rounded-xl p-4 text-center ring-1 ${bg} ${ring}`}>
+                      <span className={`text-xs font-medium ${labelTone}`}>{label}</span>
+                      <span className="mt-1 flex items-center justify-center gap-1">
+                        <span className={`font-serif text-4xl font-medium ${numTone}`}>£</span>
+                        <input
+                          value={value}
+                          onChange={(e) => set(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                          inputMode="numeric"
+                          aria-label={label}
+                          className={`w-28 border-b-4 border-slate-900 bg-transparent text-center font-serif text-5xl font-medium tabular-nums outline-none focus:border-indigo-600 ${numTone}`}
+                        />
+                      </span>
+                      <span className="mt-2 text-[11px] text-slate-500">{hint}</span>
+                    </label>
+                  )
+                })}
+              </div>
+              {amountError ? (
+                <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800 ring-1 ring-rose-200">
+                  {amountError}
+                </p>
+              ) : (
+                changed && (
+                  <p className="text-sm text-slate-500">
+                    You changed the suggestion.{' '}
+                    <button
+                      onClick={() => {
+                        setGoal(String(c.goal_gbp))
+                        setFloor(String(c.floor_gbp))
+                      }}
+                      className="font-semibold text-indigo-700 underline"
+                    >
+                      Use the policy's figures
+                    </button>
+                  </p>
+                )
+              )}
+            </section>
+
             <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
               <div>
                 <h3 className="text-sm font-semibold">You stay informed</h3>
-                <p className="text-sm text-slate-500">Haggis keeps fighting for you the whole way. It will tell you straight away if any of these happen, and you can step in whenever you like.</p>
+                <p className="text-sm text-slate-500">Quillby keeps fighting for you the whole way. It will tell you straight away if any of these happen, and you can step in whenever you like.</p>
               </div>
               {(
                 [
                   ['voucher', `${c.airline} offers a voucher instead of money`],
-                  ['belowFloor', `${c.airline} offers less than £${c.floor_gbp}`],
+                  ['belowFloor', `${c.airline} offers less than £${amountError ? c.floor_gbp : floorN}`],
                 ] as const
               ).map(([key, label]) => (
                 <label key={key} className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
@@ -149,14 +208,14 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => {
-                  // Open the airline's (fake) site in its own tab; its support chat fills in as Haggis talks.
+                  // Open the airline's (fake) site in its own tab; its support chat fills in as Quillby talks.
                   window.open('/northwind/', 'northwind-airline')
-                  onStart(checkIns)
+                  onStart(checkIns, { goal: goalN, floor: floorN })
                 }}
-                disabled={!claim.result.supported}
+                disabled={!claim.result.supported || !!amountError}
                 className="px-btn font-pixel bg-amber-300 px-6 py-3 text-sm text-slate-900 uppercase disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Let Haggis fight for this
+                Let Quillby fight for this
               </button>
               <p className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-200">
                 It will deal with their bot and a person on your behalf.

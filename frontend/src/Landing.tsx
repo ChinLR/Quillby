@@ -7,8 +7,10 @@ export type Claim = {
   result: IntakeResult
   description: string
   files: File[]
-  // When Counterbot should stop and ask the customer (set on the findings page).
+  // Set on the findings page, after the customer has read the policy.
   checkIns?: CheckIns
+  goal?: number
+  floor?: number
 }
 
 export type CheckIns = { voucher: boolean; belowFloor: boolean }
@@ -53,7 +55,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
         <a href="#/" className="font-serif text-2xl font-semibold tracking-tight">
           Counterbot
         </a>
-        <p className="hidden text-sm font-semibold text-teal-50/80 sm:block">We fight the bots, so you don't have to.</p>
+        <p className="hidden text-sm font-semibold text-teal-50/80 sm:block">Quillby fights for you, so you don't have to.</p>
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">

@@ -4,8 +4,9 @@ import { Avatar } from './Sprite'
 
 type Sender = Message['sender']
 
-// The backend labels our side "Counterbot (for Alex)"; on screen the wizard is Haggis the Wise.
-const wizardName = (label: string) => label.replace(/^Counterbot/, 'Haggis the Wise')
+// The backend labels our side "Counterbot (for Alex)"; on screen the wizard is Quillby.
+const wizardName = (label: string) => label.replace(/^Counterbot/, 'Quillby')
+const wizardText = (text: string) => text.replace(/Counterbot/g, 'Quillby')
 
 const bubble: Record<Sender, string> = {
   customer_bot: 'bg-indigo-600 text-white',
@@ -40,7 +41,7 @@ export function Chat({
         if (m.sender === 'system')
           return (
             <p key={m.id} className="self-center rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-600">
-              {m.text}
+              {wizardText(m.text)}
             </p>
           )
         const right = mine.includes(m.sender)
@@ -52,7 +53,7 @@ export function Chat({
               {m.clicked_button ? (
                 <span className="border-[3px] border-slate-900 bg-indigo-200 px-3 py-1 text-sm font-medium text-slate-900">▸ {m.clicked_button}</span>
               ) : (
-                <div className={`border-[3px] border-slate-900 px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${bubble[m.sender]}`}>{m.text}</div>
+                <div className={`border-[3px] border-slate-900 px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${bubble[m.sender]}`}>{wizardText(m.text)}</div>
               )}
               {m.buttons.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">

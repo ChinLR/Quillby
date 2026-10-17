@@ -16,7 +16,7 @@ import { CallPanel } from './CallPanel'
 import { Chat } from './Chat'
 import type { Claim } from './Landing'
 import { ReportCard } from './ReportCard'
-import { TacticBoard } from './TacticBoard'
+import { DuelScene } from './DuelScene'
 import { useAssistantLine } from './assistant'
 import type { Mood } from './Sprite'
 import { useInbox } from './useInbox'
@@ -121,7 +121,7 @@ export function Dashboard({
   const n = useNegotiation(id, speed)
   const { inbox, refresh } = useInbox(!!id)
 
-  // Haggis keeps negotiating on its own. Two kinds of alert, both driven by the raw feed so the
+  // Quillby keeps negotiating on its own. Two kinds of alert, both driven by the raw feed so the
   // customer hears before the chat catches up:
   //  - info: a voucher or low offer they asked to hear about (no pause, nothing to do)
   //  - handback: the company has run out of options ("final offer", or the same offer twice).
@@ -131,8 +131,9 @@ export function Dashboard({
   const seenOffers = useRef(0)
   const seenMessages = useRef(0)
   const airline = caseData?.airline ?? 'The airline'
-  const floorGbp = caseData?.floor_gbp ?? 0
-  const goalGbp = caseData?.goal_gbp ?? 0
+  // What the customer chose after reading the policy wins over the policy's suggestion.
+  const floorGbp = claim?.floor ?? caseData?.floor_gbp ?? 0
+  const goalGbp = claim?.goal ?? caseData?.goal_gbp ?? 0
   const check = claim?.checkIns
   useEffect(() => {
     seenOffers.current = 0
@@ -160,7 +161,7 @@ export function Dashboard({
         kind: 'handback',
         amount,
         title: amount ? `${airline} says £${amount} is the most they can offer` : `${airline} says they have nothing more to offer`,
-        detail: `Haggis has held out as far as it can. ${amount ? (amount >= goalGbp ? 'That meets your goal.' : amount >= floorGbp ? `That is above your £${floorGbp} minimum but below your £${goalGbp} goal.` : `That is below your £${floorGbp} minimum, so if Haggis pushes on, ${airline} will probably end the talks.`) : ''} The next move is yours.`.replace('  ', ' '),
+        detail: `Quillby has held out as far as it can. ${amount ? (amount >= goalGbp ? 'That meets your goal.' : amount >= floorGbp ? `That is above your £${floorGbp} minimum but below your £${goalGbp} goal.` : `That is below your £${floorGbp} minimum, so if Quillby pushes on, ${airline} will probably end the talks.`) : ''} The next move is yours.`.replace('  ', ' '),
       })
       pauseNegotiation(id).catch(() => {})
       return
@@ -177,8 +178,8 @@ export function Dashboard({
                 kind: 'info',
                 title: voucher ? `${airline} offered a £${o.amount_gbp} voucher instead of money` : `${airline} offered £${o.amount_gbp} cash`,
                 detail: voucher
-                  ? 'A voucher is not compensation. Haggis is pushing back and holding out for cash. No action needed.'
-                  : `That is below your £${floorGbp} minimum. Haggis is pushing back and holding your line. No action needed.`,
+                  ? 'A voucher is not compensation. Quillby is pushing back and holding out for cash. No action needed.'
+                  : `That is below your £${floorGbp} minimum. Quillby is pushing back and holding your line. No action needed.`,
               },
         )
         break
@@ -188,7 +189,7 @@ export function Dashboard({
   const rawStatus = n.rawStatus?.status
   const notice =
     rawStatus === 'awaiting_call' || rawStatus === 'on_call'
-      ? { tone: 'sky', text: `${caseData?.airline ?? 'The airline'} wants to settle this over the phone. Haggis will take the call, and you can follow it live below.` }
+      ? { tone: 'sky', text: `${caseData?.airline ?? 'The airline'} wants to settle this over the phone. Quillby will take the call, and you can follow it live below.` }
       : rawStatus === 'walked_away' || rawStatus === 'failed'
         ? { tone: 'rose', text: 'The talks ended without a deal. Nothing has been accepted on your behalf.' }
         : null
@@ -216,7 +217,7 @@ export function Dashboard({
         ? waitingOnHuman
           ? null
           : { sender: lastTheirs?.sender ?? 'company_bot', sender_label: lastTheirs?.sender_label ?? 'Support' }
-        : { sender: 'customer_bot' as const, sender_label: `Haggis the Wise (for ${caseData?.passenger_name.split(' ')[0] ?? 'you'})` }
+        : { sender: 'customer_bot' as const, sender_label: `Quillby (for ${caseData?.passenger_name ?? 'you'})` }
       : null)
   // The human-agent controls live here too, once the mock bot has handed the chat over.
   // The companion stands on the right while it is working, and says what it is doing.
@@ -249,7 +250,8 @@ export function Dashboard({
       line = n.tactic ? `Fighting the bot. Level ${n.tactic.stage}: ${n.tactic.stage_name}.` : 'Starting the fight…'
     }
   }
-  useAssistantLine(line, mood, { place: id ? 'right' : 'left', working: !!id && !finished })
+  // The wand duel on this page shows Quillby fighting, so the corner companion stays out of the way.
+  useAssistantLine(line, mood, { place: id ? 'right' : 'left', working: !!id && !finished, hidden: true })
 
   const agentLive = !!inbox?.handed_off && n.humanReached && !finished && !callPhase && !inbox.call_number
 
@@ -276,7 +278,7 @@ export function Dashboard({
 
   const start = () =>
     run(async () => {
-      const s = await startNegotiation({ speed })
+      const s = await startNegotiation({ speed, goal_gbp: claim?.goal, floor_gbp: claim?.floor })
       store.set(s.id)
       setId(s.id)
     })
@@ -338,7 +340,7 @@ export function Dashboard({
         <h1 className="font-serif text-2xl font-semibold tracking-tight">
           Counterbot
         </h1>
-        <p className="hidden text-sm font-semibold text-teal-50/80 sm:block">We fight the bots, so you don't have to.</p>
+        <p className="hidden text-sm font-semibold text-teal-50/80 sm:block">Quillby fights for you, so you don't have to.</p>
         <span className="ml-auto flex items-center gap-2 text-xs text-slate-400">
           {id && (
             <>
@@ -351,7 +353,7 @@ export function Dashboard({
 
       <main className="mx-auto flex max-w-7xl flex-col gap-4 p-4 md:p-6">
         {caseData ? (
-          <CaseSummary c={caseData} claim={claim} />
+          <CaseSummary c={{ ...caseData, goal_gbp: goalGbp || caseData.goal_gbp, floor_gbp: floorGbp || caseData.floor_gbp }} claim={claim} />
         ) : (
           !error && <div className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200" />
         )}
@@ -360,7 +362,7 @@ export function Dashboard({
           {!id || finished ? (
             <>
               <button onClick={start} disabled={busy} className="px-btn font-pixel bg-amber-300 px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
-                {finished ? 'Run again' : 'Send in Haggis'}
+                {finished ? 'Run again' : 'Send in Quillby'}
               </button>
               <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded-lg border border-slate-300 bg-white px-2 py-2.5 text-sm" aria-label="Speed">
                 <option value={1}>1× speed</option>
@@ -472,7 +474,7 @@ export function Dashboard({
               <span className="relative inline-flex size-3 rounded-full bg-white" />
             </span>
             <p className="font-semibold">Human reached.</p>
-            <p className="text-sm text-emerald-50">The bot wall is down. Haggis is now negotiating with a person.</p>
+            <p className="text-sm text-emerald-50">The bot wall is down. Quillby is now negotiating with a person.</p>
           </div>
         )}
 
@@ -481,7 +483,7 @@ export function Dashboard({
             call={n.call}
             lines={callLines}
             airline={caseData?.airline ?? 'The airline'}
-            goal={caseData?.goal_gbp ?? 350}
+            goal={goalGbp || 350}
             busy={busy}
             canRecord={callPhase}
             onRecord={recordOutcome}
@@ -503,7 +505,7 @@ export function Dashboard({
                 messages={chatMessages}
                 mine={['customer_bot', 'customer']}
                 typing={typing}
-                empty={id ? 'Connecting…' : 'Press Start and Haggis takes it from here.'}
+                empty={id ? 'Connecting…' : 'Press Start and Quillby takes it from here.'}
               />
             </div>
             {agentLive && status !== 'paused' && (
@@ -546,21 +548,17 @@ export function Dashboard({
             )}
           </section>
 
-          <section className="h-fit rounded-2xl bg-white ring-1 ring-slate-200 lg:max-h-[600px] lg:overflow-y-auto">
-            <div className="border-b border-slate-200 px-5 py-2.5">
-              <h2 className="text-sm font-semibold">Tactic board</h2>
-            </div>
-            <TacticBoard
-              tactics={n.tactics}
-              tactic={n.tactic}
-              pressure={n.pressure}
-              detection={n.detection}
-              offers={n.offers}
-              humanReached={n.humanReached}
-              floor={caseData?.floor_gbp ?? 0}
-              started={!!id}
-            />
-          </section>
+          <DuelScene
+            started={!!id}
+            company={caseData?.airline ?? 'The airline'}
+            tactic={n.tactic}
+            pressure={n.pressure}
+            humanReached={n.humanReached}
+            offers={n.offers}
+            messages={n.messages}
+            status={status}
+            floor={floorGbp}
+          />
         </div>
       </main>
     </div>
