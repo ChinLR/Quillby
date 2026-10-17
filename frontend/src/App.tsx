@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AgentWindow } from './AgentWindow'
+import { Companion } from './Companion'
 import { Dashboard } from './Dashboard'
 import { Home } from './Home'
 import { Landing } from './Landing'
@@ -7,7 +8,7 @@ import type { Claim } from './Landing'
 import { Review } from './Review'
 
 // Routes: '' = marketing home, '#/start' = intake form, '#/review' = findings, '#/run' = dashboard, '#/agent' = second-laptop agent window.
-export default function App() {
+function Routes() {
   const [hash, setHash] = useState(window.location.hash)
   const [claim, setClaim] = useState<Claim | null>(null)
   const [autoStart, setAutoStart] = useState(false)
@@ -59,5 +60,20 @@ export default function App() {
         go('#/review')
       }}
     />
+  )
+}
+
+export default function App() {
+  const [, force] = useState(0)
+  useEffect(() => {
+    const on = () => force((n) => n + 1)
+    window.addEventListener('hashchange', on)
+    return () => window.removeEventListener('hashchange', on)
+  }, [])
+  return (
+    <>
+      <Routes />
+      {window.location.hash !== '#/agent' && <Companion />}
+    </>
   )
 }

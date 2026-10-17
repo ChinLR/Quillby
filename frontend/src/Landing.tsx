@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useAssistantLine } from './assistant'
 import { submitIntake } from './api'
 import type { IntakeResult } from './api'
 
@@ -44,6 +45,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
   }
 
   const tooShort = description.trim().length < 10
+  useAssistantLine(busy ? 'Reading what you wrote…' : 'Tell me what happened. Take your time, and add anything you have.', busy ? 'think' : 'idle')
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">

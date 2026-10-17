@@ -17,6 +17,8 @@ import { Chat } from './Chat'
 import type { Claim } from './Landing'
 import { ReportCard } from './ReportCard'
 import { TacticBoard } from './TacticBoard'
+import { useAssistantLine } from './assistant'
+import type { Mood } from './Sprite'
 import { useInbox } from './useInbox'
 import { useNegotiation } from './useNegotiation'
 
@@ -217,6 +219,38 @@ export function Dashboard({
         : { sender: 'customer_bot' as const, sender_label: 'Counterbot (for Alex)' }
       : null)
   // The human-agent controls live here too, once the mock bot has handed the chat over.
+  // The companion stands on the right while it is working, and says what it is doing.
+  const lastOffer = n.offers.at(-1)
+  let line = 'Ready when you are.'
+  let mood: Mood = 'idle'
+  if (id) {
+    mood = 'fight'
+    if (finished) {
+      if (status === 'won') {
+        line = `Won £${report?.amount_gbp ?? lastOffer?.amount_gbp ?? ''}! That is how it is done.`
+        mood = 'happy'
+      } else {
+        line = 'No deal this time. Nothing was accepted on your behalf.'
+        mood = 'sad'
+      }
+    } else if (decision?.kind === 'handback') {
+      line = "Over to you. They say that's all they have."
+      mood = 'think'
+    } else if (callPhase) {
+      line = 'They want a phone call. I will take it.'
+    } else if (status === 'paused') {
+      line = "You're stepping in. Say the word and I'll carry on."
+      mood = 'idle'
+    } else if (decision?.kind === 'info') {
+      line = 'No vouchers from me. Holding out for cash.'
+    } else if (n.humanReached) {
+      line = 'A human at last. Time to negotiate.'
+    } else {
+      line = n.tactic ? `Fighting the bot. Level ${n.tactic.stage}: ${n.tactic.stage_name}.` : 'Starting the fight…'
+    }
+  }
+  useAssistantLine(line, mood, { place: id ? 'right' : 'left' })
+
   const agentLive = !!inbox?.handed_off && n.humanReached && !finished && !callPhase && !inbox.call_number
 
   useEffect(() => {

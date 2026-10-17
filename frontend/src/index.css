@@ -1,125 +1,256 @@
 @import "tailwindcss";
 
 /*
-  Theme: warm ivory paper, ink, and a restrained brass accent. The palette is remapped
-  at the root, so every existing slate/indigo/emerald/rose/amber class takes it on:
-    slate / zinc -> warm stone and ink      indigo -> brass
-    emerald      -> forest green             rose   -> oxblood
-    amber        -> bronze                   sky    -> steel
+  Pixel-game theme in earth tones (parchment, clay, moss, ochre). Sprites stay pixel art; text is a readable sans. The palette is remapped at the Tailwind root so every
+  existing slate/indigo/emerald/rose/amber class takes it on:
+    slate / zinc -> warm browns and parchment   indigo -> terracotta clay
+    emerald      -> moss / olive                 rose   -> brick
+    amber        -> ochre / mustard              sky    -> sage
+  Panels get thick pixel borders and hard drop shadows; corners are square.
 */
 @theme {
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-serif: "Cormorant Garamond", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-pixel: "Nunito", ui-sans-serif, system-ui, sans-serif;
 
-  --color-white: #fffdf9;
+  --color-white: #fbf4e4;
 
-  --color-slate-50: #f8f5ee;
-  --color-slate-100: #f0ebe0;
-  --color-slate-200: #e3dccd;
-  --color-slate-300: #d0c7b4;
-  --color-slate-400: #a59c8a;
-  --color-slate-500: #7d7568;
-  --color-slate-600: #5e584d;
-  --color-slate-700: #443f37;
-  --color-slate-800: #2c2925;
-  --color-slate-900: #1d1b18;
-  --color-slate-950: #12100e;
-  --color-zinc-50: #f8f5ee;
-  --color-zinc-100: #f0ebe0;
-  --color-zinc-200: #e3dccd;
-  --color-zinc-300: #d0c7b4;
-  --color-zinc-400: #a59c8a;
-  --color-zinc-500: #7d7568;
-  --color-zinc-600: #5e584d;
-  --color-zinc-700: #443f37;
-  --color-zinc-800: #2c2925;
-  --color-zinc-900: #1d1b18;
-  --color-zinc-950: #12100e;
+  --color-slate-50: #f8f1e3;
+  --color-slate-100: #efe3cb;
+  --color-slate-200: #dccdb0;
+  --color-slate-300: #c4b08d;
+  --color-slate-400: #9c8766;
+  --color-slate-500: #7a6648;
+  --color-slate-600: #5d4c35;
+  --color-slate-700: #46382a;
+  --color-slate-800: #33281d;
+  --color-slate-900: #241b13;
+  --color-slate-950: #17100b;
+  --color-zinc-50: #f8f1e3;
+  --color-zinc-100: #efe3cb;
+  --color-zinc-200: #dccdb0;
+  --color-zinc-300: #c4b08d;
+  --color-zinc-400: #9c8766;
+  --color-zinc-500: #7a6648;
+  --color-zinc-600: #5d4c35;
+  --color-zinc-700: #46382a;
+  --color-zinc-800: #33281d;
+  --color-zinc-900: #241b13;
+  --color-zinc-950: #17100b;
 
-  --color-indigo-50: #faf5e9;
-  --color-indigo-100: #f2e8cf;
-  --color-indigo-200: #e6d3a3;
-  --color-indigo-300: #d6bc78;
-  --color-indigo-400: #c4a24f;
-  --color-indigo-500: #ad8a38;
-  --color-indigo-600: #8f702b;
-  --color-indigo-700: #725822;
-  --color-indigo-800: #55411a;
-  --color-indigo-900: #3a2c12;
-  --color-indigo-950: #231a0a;
+  /* "indigo" is the accent: terracotta clay */
+  --color-indigo-50: #fbefe8;
+  --color-indigo-100: #f6dccd;
+  --color-indigo-200: #ecbc9f;
+  --color-indigo-300: #e8a27a;
+  --color-indigo-400: #d9814f;
+  --color-indigo-500: #c2653a;
+  --color-indigo-600: #a9532d;
+  --color-indigo-700: #8a4325;
+  --color-indigo-800: #6b351e;
+  --color-indigo-900: #4d2616;
+  --color-indigo-950: #2e160c;
 
-  --color-emerald-50: #eef4f0;
-  --color-emerald-100: #d8e6dd;
-  --color-emerald-200: #b3cdbe;
-  --color-emerald-300: #86ad97;
-  --color-emerald-400: #5b8d73;
-  --color-emerald-500: #3f7258;
-  --color-emerald-600: #2f5d4a;
-  --color-emerald-700: #264b3c;
-  --color-emerald-800: #1e3b30;
-  --color-emerald-900: #162c24;
-  --color-emerald-950: #0c1a15;
+  /* "emerald" is moss / olive */
+  --color-emerald-50: #f1f3e4;
+  --color-emerald-100: #e0e6c4;
+  --color-emerald-200: #c6d49a;
+  --color-emerald-300: #a5bb6d;
+  --color-emerald-400: #86a049;
+  --color-emerald-500: #6b8a37;
+  --color-emerald-600: #55702b;
+  --color-emerald-700: #435a23;
+  --color-emerald-800: #34451c;
+  --color-emerald-900: #263213;
+  --color-emerald-950: #151c0a;
 
-  --color-rose-50: #f8efee;
-  --color-rose-100: #f0dad7;
-  --color-rose-200: #e3b9b3;
-  --color-rose-300: #cf918a;
-  --color-rose-400: #b96760;
-  --color-rose-500: #9c4a44;
-  --color-rose-600: #7f3335;
-  --color-rose-700: #692b2e;
-  --color-rose-800: #532326;
-  --color-rose-900: #3c1a1c;
+  /* "rose" is brick */
+  --color-rose-50: #faece7;
+  --color-rose-100: #f2d3c9;
+  --color-rose-200: #e4aa9b;
+  --color-rose-300: #d27f6b;
+  --color-rose-400: #c25f48;
+  --color-rose-500: #b0452f;
+  --color-rose-600: #953724;
+  --color-rose-700: #7a2d1d;
+  --color-rose-800: #5e2316;
+  --color-rose-900: #431810;
 
-  --color-amber-50: #fbf6ea;
-  --color-amber-100: #f5eac9;
-  --color-amber-200: #ebd59a;
-  --color-amber-300: #dfbc66;
-  --color-amber-400: #d1a23f;
-  --color-amber-500: #c79a3a;
-  --color-amber-600: #9a6c20;
-  --color-amber-700: #7a541a;
-  --color-amber-800: #5c3f15;
-  --color-amber-900: #402c10;
-  --color-amber-950: #261909;
+  /* "amber" is ochre / mustard */
+  --color-amber-50: #fdf6e3;
+  --color-amber-100: #f9e8bd;
+  --color-amber-200: #f1d58a;
+  --color-amber-300: #e8c067;
+  --color-amber-400: #d9a441;
+  --color-amber-500: #e2b04f;
+  --color-amber-600: #b9832a;
+  --color-amber-700: #946520;
+  --color-amber-800: #6f4a18;
+  --color-amber-900: #4d3311;
+  --color-amber-950: #2d1d09;
 
-  --color-sky-50: #f1f4f6;
-  --color-sky-100: #dee6ea;
-  --color-sky-200: #bfcdd5;
-  --color-sky-500: #5e7c8c;
-  --color-sky-800: #2f4752;
-  --color-sky-900: #22343c;
+  --color-sky-50: #eef3f1;
+  --color-sky-100: #dbe6e2;
+  --color-sky-200: #b9cec7;
+  --color-sky-500: #5f8a7c;
+  --color-sky-800: #2f4a42;
+  --color-sky-900: #213631;
 
-  /* Crisper corners read as tailored rather than app-like. Pills and dots stay round. */
-  --radius-xs: 0.0625rem;
-  --radius-sm: 0.125rem;
-  --radius-md: 0.1875rem;
-  --radius-lg: 0.25rem;
-  --radius-xl: 0.3125rem;
-  --radius-2xl: 0.375rem;
-  --radius-3xl: 0.5rem;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
 }
 
 html {
   scroll-behavior: smooth;
 }
 body {
-  background: var(--color-slate-50);
+  background-color: #e6d6b4;
+  background-image:
+    linear-gradient(rgba(255, 250, 235, 0.35) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 250, 235, 0.35) 2px, transparent 2px);
+  background-size: 24px 24px;
   color: var(--color-slate-900);
-  font-feature-settings: "kern", "liga";
   -webkit-font-smoothing: antialiased;
 }
 
-/* Cormorant defaults to old-style figures, where 1 reads as a capital I. */
-.font-serif {
-  font-variant-numeric: lining-nums;
-  font-feature-settings: "lnum", "kern", "liga";
+/* Everything is boxy: pills and dots become square pixels. */
+.rounded-full {
+  border-radius: 0;
 }
 
+/* Thick pixel borders instead of hairline rings. */
+.ring-1 {
+  --tw-ring-shadow: 0 0 0 3px var(--tw-ring-color, currentcolor);
+}
+.ring-2 {
+  --tw-ring-shadow: 0 0 0 4px var(--tw-ring-color, currentcolor);
+}
+.ring-slate-200,
+.ring-slate-300,
+.ring-slate-800,
+.ring-zinc-300,
+.ring-white\/10,
+.ring-white\/15,
+.ring-white\/20 {
+  --tw-ring-color: var(--color-slate-900);
+}
+.border,
+.border-t,
+.border-b,
+.border-l {
+  border-color: var(--color-slate-900);
+}
+.border-slate-200,
+.border-slate-300,
+.border-zinc-200,
+.border-zinc-300 {
+  border-color: var(--color-slate-900);
+}
+
+/* Hard, un-blurred drop shadows. */
+.shadow-sm,
+.shadow,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+  --tw-shadow: 4px 4px 0 0 rgba(26, 28, 44, 0.9);
+}
+
+/* Steppy, low-frame-rate motion. */
+.animate-bounce {
+  animation-timing-function: steps(2, jump-none);
+}
+.animate-pulse {
+  animation: px-blink 1.2s steps(2, jump-none) infinite;
+}
+.animate-ping {
+  animation: px-blink 1s steps(2, jump-none) infinite;
+}
+.animate-spin {
+  animation: spin 0.8s steps(8) infinite;
+}
+@keyframes px-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.font-pixel {
+  font-family: var(--font-pixel);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+/* Game-feel buttons: chunky, they press down. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+button.px-btn {
+  border: 3px solid var(--color-slate-900);
+  box-shadow: 4px 4px 0 0 var(--color-slate-900);
+  transition: transform 0.06s steps(2), box-shadow 0.06s steps(2);
+}
+button.px-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 0 var(--color-slate-900);
+}
+button.px-btn:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 var(--color-slate-900);
+}
+
+/* Pixel panel: cream paper, dark border, hard shadow. */
+.px-panel {
+  background: var(--color-white);
+  border: 4px solid var(--color-slate-900);
+  box-shadow: 6px 6px 0 0 rgba(26, 28, 44, 0.9);
+}
+
+@keyframes px-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+.px-bob {
+  animation: px-bob 1s steps(2, jump-none) infinite;
+}
+@keyframes px-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+.px-walk {
+  animation: px-walk 0.4s steps(2, jump-none) infinite;
+}
+@keyframes px-drift {
+  from {
+    transform: translateX(-30vw);
+  }
+  to {
+    transform: translateX(130vw);
+  }
+}
+.px-cloud {
+  animation: px-drift 60s steps(120) infinite;
+}
 @keyframes pop-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -127,15 +258,15 @@ body {
   }
 }
 .animate-pop-in {
-  animation: pop-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: pop-in 0.3s steps(3) both;
 }
 
 .reveal {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(16px);
   transition:
-    opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity 0.5s steps(5),
+    transform 0.5s steps(5);
   transition-delay: var(--reveal-delay, 0ms);
 }
 .reveal.is-visible {
@@ -147,7 +278,14 @@ body {
   html {
     scroll-behavior: auto;
   }
-  .animate-pop-in {
+  .animate-pop-in,
+  .px-bob,
+  .px-walk,
+  .px-cloud,
+  .animate-bounce,
+  .animate-pulse,
+  .animate-ping,
+  .animate-spin {
     animation: none;
   }
   .reveal {

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useAssistantLine } from './assistant'
+import { DocWalk, walkDuration } from './DocWalk'
 import type { CheckIns, Claim } from './Landing'
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const delay = (m: number) => `${Math.floor(m / 60)}h ${m % 60}m`
-const STEP_MS = 1100
 
 // Page two: walks through the case while "reading" it, then says what the customer is likely owed.
 // Figures come from the intake result (case, goal, floor) and the policy summary the backend holds.
@@ -19,14 +20,24 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
     c.legal.title.replace(/\s*\(summary\)/i, '') + ': checking the rules',
     'Working out what you are owed',
   ]
+  // Counterbot walks to each document, reads it and collects it. The checklist is paced to finish with it.
+  const docNames = docs > 0 ? claim.files.map((f) => f.name) : ['Your description', `Booking ${c.booking_ref}`, `Flight ${c.flight_number} record`]
+  const stepMs = Math.max(1100, Math.round(walkDuration(docNames.length) / steps.length))
   const [done, setDone] = useState(0)
-  const ready = done >= steps.length
+  const [walkDone, setWalkDone] = useState(false)
+  const ready = done >= steps.length && walkDone
 
   useEffect(() => {
     if (done >= steps.length) return
-    const t = window.setTimeout(() => setDone((d) => d + 1), STEP_MS)
+    const t = window.setTimeout(() => setDone((d) => d + 1), stepMs)
     return () => window.clearTimeout(t)
-  }, [done, steps.length])
+  }, [done, steps.length, stepMs])
+
+  useAssistantLine(
+    ready ? `Found something! You may be owed £${c.goal_gbp}.` : 'Reading your documents…',
+    ready ? 'happy' : 'think',
+    { place: 'right', hidden: !ready },
+  )
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
@@ -39,6 +50,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
         </button>
       </header>
 
+      {!walkDone && <DocWalk docs={docNames} onDone={() => setWalkDone(true)} />}
       <main className="mx-auto flex max-w-2xl flex-col gap-5 p-4 md:p-8">
         {!ready ? (
           <section className="flex flex-col gap-5 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
