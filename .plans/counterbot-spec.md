@@ -1,7 +1,9 @@
-# Bot vs Bot: Spec
+# Counterbot: Spec
 
 Edinburgh AI Hackathon. ~5 hours of build, 2 people. Optimise for a flawless demo path, not coverage.
 Status: draft from the interview on 2026-10-17. Read once and fix anything wrong before writing the contract.
+
+Name: Counterbot. The end goal is our bot against their human. Beating the company's bot is only the means to get there.
 
 ## One-liner
 

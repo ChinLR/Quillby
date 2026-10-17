@@ -1,6 +1,6 @@
-# Contract: Bot vs Bot (frozen after commit; change only with a heads-up)
+# Contract: Counterbot (frozen after commit; change only with a heads-up)
 
-Source: `.plans/bot-vs-bot-spec.md`. Only what the demo script needs. No extra endpoints.
+Source: `.plans/counterbot-spec.md`. Only what the demo script needs. No extra endpoints.
 
 Conventions (from CLAUDE.md): snake_case JSON keys, ISO 8601 dates (UTC, e.g. `2026-10-17T10:30:00Z`), string ids, empty lists instead of null, Pydantic models with `response_model` on every endpoint. Errors: `HTTPException(status_code, detail="message")`; the frontend shows `detail`. Money is whole GBP integers.
 
