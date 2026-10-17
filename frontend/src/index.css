@@ -245,6 +245,20 @@ button.px-btn:active:not(:disabled) {
   animation: px-float 6s steps(6, jump-none) infinite;
 }
 
+@keyframes px-spark {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4);
+  }
+}
+.px-spark {
+  animation: px-spark 0.6s steps(6) both;
+}
+
 @keyframes px-bob {
   0%,
   100% {
@@ -314,6 +328,7 @@ button.px-btn:active:not(:disabled) {
   .animate-pop-in,
   .px-bob,
   .px-walk,
+  .px-spark,
   .px-float,
   .px-cloud,
   .animate-bounce,

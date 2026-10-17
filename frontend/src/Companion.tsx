@@ -136,9 +136,13 @@ export function Companion() {
           <span className="animate-pulse absolute -top-3 right-2 text-lg leading-none font-black text-amber-500" aria-hidden>
             ✦
           </span>
-          <p className="text-[15px] leading-snug font-extrabold text-slate-900">
-            {shown}
-            <span className="animate-pulse text-indigo-600">▌</span>
+          {/* the full line is laid out invisibly so the bubble keeps its final size while typing */}
+          <p className="relative min-w-[10.5rem] text-[15px] leading-snug font-extrabold text-slate-900">
+            <span className="invisible">{text}</span>
+            <span className="absolute inset-0">
+              {shown}
+              <span className="animate-pulse text-indigo-600">▌</span>
+            </span>
           </p>
         </div>
       )}

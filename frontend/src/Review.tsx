@@ -36,7 +36,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
   useAssistantLine(
     ready ? `Found something! You may be owed £${c.goal_gbp}.` : 'Reading your documents…',
     ready ? 'happy' : 'think',
-    { place: 'right', hidden: !ready },
+    { place: 'right', hidden: !walkDone },
   )
 
   return (

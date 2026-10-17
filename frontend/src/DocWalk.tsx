@@ -1,32 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CounterbotSprite, DocSprite } from './Sprite'
 
-// Where the documents lie on screen (percent of the viewport) and where Counterbot starts and ends.
-const SPOTS: [number, number][] = [
-  [9, 30],
-  [91, 24],
-  [8, 62],
-  [92, 58],
-  [24, 84],
+// Where each document starts, just outside the screen edges (percent of the viewport).
+const EDGES: [number, number][] = [
+  [-8, 30],
+  [30, -10],
+  [108, 24],
+  [-8, 66],
+  [68, -10],
 ]
-// Counterbot stands beside a document, on the side facing the middle of the screen.
-const standBeside = ([x, y]: [number, number]): [number, number] => [x > 50 ? x - 9 : x + 9, y + 5]
-// Counterbot's home: exactly where the companion stands, bottom-right (sprite 80px wide, 16px margin).
-const home = (): [number, number] => [((window.innerWidth - 56) / window.innerWidth) * 100, ((window.innerHeight - 16) / window.innerHeight) * 100]
-export const TRAVEL_MS = 1300
-export const READ_MS = 1100
-export const walkDuration = (n: number) => Math.min(n, SPOTS.length) * (TRAVEL_MS + READ_MS) + TRAVEL_MS
+const FIRST_MS = 500
+const GAP_MS = 1300 // one document launched per wave of the wand
+const FLY_MS = 1100
+const TAIL_MS = 800
+export const walkDuration = (n: number) => FIRST_MS + (Math.min(n, EDGES.length) - 1) * GAP_MS + FLY_MS + TAIL_MS
 
 const short = (s: string) => (s.length > 24 ? s.slice(0, 21) + '…' : s)
+type Phase = 'wait' | 'fly' | 'gone'
 
-// Counterbot walks around the screen, reads each document and collects it.
+// While Counterbot checks the documents he stays in his corner and waves his wand; each document
+// flies in from the edge of the screen, spinning, and he catches it in a burst of sparkles.
 export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }) {
-  const shown = docs.slice(0, SPOTS.length)
-  const [pos, setPos] = useState<[number, number]>(home)
-  const [face, setFace] = useState(1)
-  const [walking, setWalking] = useState(false)
-  const [reading, setReading] = useState(-1)
+  const shown = docs.slice(0, EDGES.length)
+  const [phase, setPhase] = useState<Phase[]>(() => shown.map(() => 'wait'))
   const [collected, setCollected] = useState(0)
+  const [wave, setWave] = useState(0)
+  const [burst, setBurst] = useState(0)
+  const [last, setLast] = useState('')
+
+  // Pixel positions fixed at mount: where each document starts, and where Counterbot stands.
+  const geo = useMemo(() => {
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    return {
+      starts: EDGES.map(([x, y]) => [(x / 100) * vw, (y / 100) * vh] as [number, number]),
+      target: [vw - 56, vh - 64] as [number, number], // centre of the wizard in his bottom-right corner
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -35,66 +45,82 @@ export function DocWalk({ docs, onDone }: { docs: string[]; onDone: () => void }
       return
     }
     const timers: number[] = []
-    let t = 300
-    let at: [number, number] = home()
-    const go = (to: [number, number]) => {
-      timers.push(
-        window.setTimeout(() => {
-          setFace(to[0] < at[0] ? -1 : 1)
-          setWalking(true)
-          setPos(to)
-          at = to
-        }, t),
-      )
-      t += TRAVEL_MS
-      timers.push(window.setTimeout(() => setWalking(false), t))
-    }
-    shown.forEach((_, i) => {
-      go(standBeside(SPOTS[i]))
-      timers.push(window.setTimeout(() => setReading(i), t))
-      t += READ_MS
-      timers.push(
-        window.setTimeout(() => {
-          setCollected((c) => c + 1)
-          setReading(-1)
-        }, t),
-      )
+    const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms))
+    shown.forEach((name, i) => {
+      const launch = FIRST_MS + i * GAP_MS
+      at(launch, () => {
+        setPhase((p) => p.map((v, k) => (k === i ? 'fly' : v)))
+        setWave((n) => n + 1)
+      })
+      at(launch + FLY_MS, () => {
+        setPhase((p) => p.map((v, k) => (k === i ? 'gone' : v)))
+        setCollected((c) => c + 1)
+        setLast(name)
+        setBurst((b) => b + 1)
+      })
     })
-    go(home())
-    timers.push(window.setTimeout(onDone, t))
+    at(walkDuration(shown.length), onDone)
     return () => timers.forEach((id) => window.clearTimeout(id))
     // run once per mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-30" aria-hidden>
+    <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden" aria-hidden>
       {shown.map((name, i) => {
-        if (i < collected) return null
-        const [x, y] = SPOTS[i]
+        if (phase[i] === 'gone') return null
+        const [sx, sy] = geo.starts[i]
+        const [tx, ty] = geo.target
+        const flying = phase[i] === 'fly'
+        const dir = i % 2 ? -1 : 1
         return (
-          <div key={name + i} className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1" style={{ left: `${x}%`, top: `${y}%` }}>
-            <DocSprite scale={reading === i ? 6 : 5} className={reading === i ? 'animate-pulse' : ''} />
-            <span className="border-2 border-slate-900 bg-white px-1.5 py-0.5 text-[11px] font-bold text-slate-900">{short(name)}</span>
+          <div
+            key={name + i}
+            className="absolute flex flex-col items-center gap-1"
+            style={{
+              left: (flying ? tx : sx) - 28,
+              top: (flying ? ty : sy) - 36,
+              opacity: flying ? 1 : 0,
+              transition: `left ${FLY_MS}ms cubic-bezier(0.25, 0.6, 0.3, 1), top ${FLY_MS}ms cubic-bezier(0.55, 0, 0.8, 0.5), opacity 200ms`,
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                transform: flying ? `rotate(${dir * 540}deg) scale(0.4)` : 'rotate(0deg) scale(1.1)',
+                transition: `transform ${FLY_MS}ms ease-in`,
+              }}
+            >
+              <DocSprite scale={5} />
+            </span>
+            <span className="border-2 border-slate-900 bg-white px-1.5 py-0.5 text-[11px] font-bold text-slate-900" style={{ opacity: flying ? 0 : 1, transition: `opacity ${FLY_MS}ms ease-in` }}>
+              {short(name)}
+            </span>
           </div>
         )
       })}
 
-      <div
-        className="absolute flex flex-col items-center"
-        style={{
-          left: `${pos[0]}%`,
-          top: `${pos[1]}%`,
-          transform: 'translate(-50%, -100%)',
-          transition: `left ${TRAVEL_MS}ms steps(13), top ${TRAVEL_MS}ms steps(13)`,
-        }}
-      >
-        {reading >= 0 && (
-          <span className="px-panel mb-2 max-w-[13rem] px-2.5 py-1.5 text-center text-xs font-bold text-slate-900">Reading {short(shown[reading])}…</span>
+      {/* Counterbot, in his corner, waving his wand for each document */}
+      <div className="fixed right-4 bottom-4 h-24 w-20">
+        {last && (
+          <span key={burst} className="px-panel animate-pop-in absolute right-0 bottom-full mb-3 w-max max-w-[14rem] px-2.5 py-1.5 text-center text-xs font-bold text-slate-900">
+            Got it: {short(last)} ✓
+          </span>
         )}
-        <span style={{ display: 'inline-block', transform: `scaleX(${face})` }}>
-          <CounterbotSprite scale={4} walking={walking} mood={reading >= 0 ? 'think' : 'idle'} />
-        </span>
+        <CounterbotSprite scale={4} mood="think" waveSignal={wave} />
+        {burst > 0 &&
+          [0, 1, 2, 3, 4, 5].map((k) => {
+            const a = (k / 6) * Math.PI * 2
+            return (
+              <span
+                key={burst + '-' + k}
+                className="px-spark absolute top-1/2 left-1/2 text-lg font-black text-amber-400"
+                style={{ ['--dx' as string]: `${Math.cos(a) * 54}px`, ['--dy' as string]: `${Math.sin(a) * 54}px` }}
+              >
+                ✦
+              </span>
+            )
+          })}
       </div>
 
       <div className="px-panel fixed bottom-4 left-1/2 hidden -translate-x-1/2 px-3 py-2 text-xs font-bold text-slate-900 sm:block" style={{ opacity: collected > 0 ? 1 : 0 }}>
