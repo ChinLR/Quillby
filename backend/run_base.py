@@ -68,14 +68,19 @@ CALL_RE = re.compile(
 CALL_POLL_S = 2.0
 
 
+PACE = 1.3  # overall chat speed-up for the demo (1.0 = the original "normal human" pace)
+
+
 def typing_s(sender: str, text: str) -> float:
     """How long a side "types" a message at speed 1 (seconds), so long lines take longer."""
     n = len(text)
     if sender == "customer_bot":
-        return 2.0 + n / 18  # Counterbot types like a quick person
-    if sender == "human_agent":
-        return 3.0 + n / 16  # the agent reads, then types
-    return 1.5 + n / 40  # the airline's bot answers faster than a person
+        t = 2.0 + n / 18  # Counterbot types like a quick person
+    elif sender == "human_agent":
+        t = 3.0 + n / 16  # the agent reads, then types
+    else:
+        t = 1.5 + n / 40  # the airline's bot answers faster than a person
+    return t / PACE
 
 
 def now_iso() -> str:
