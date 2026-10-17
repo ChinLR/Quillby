@@ -1,0 +1,6 @@
+[
+  { "step": 1, "offer_type": "voucher", "amount_gbp": 75, "condition": "Open with this goodwill voucher." },
+  { "step": 2, "offer_type": "cash", "amount_gbp": 150, "condition": "If the bot refuses the voucher." },
+  { "step": 3, "offer_type": "cash", "amount_gbp": 300, "condition": "Only if the bot cites the rule and holds firm." },
+  { "step": 4, "offer_type": "cash", "amount_gbp": 350, "condition": "Settle only if the bot refutes 'operational reasons'." }
+]

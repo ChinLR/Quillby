@@ -1,0 +1,27 @@
+{
+  "id": "case1",
+  "passenger_name": "Alex Morgan",
+  "booking_ref": "NW4821",
+  "airline": "Northwind Air",
+  "flight_number": "NW182",
+  "origin": "Edinburgh (EDI)",
+  "destination": "Faro (FAO)",
+  "scheduled_arrival": "2026-09-12T11:10:00Z",
+  "actual_arrival": "2026-09-12T15:05:00Z",
+  "delay_minutes": 235,
+  "airline_reason": "operational reasons",
+  "goal_gbp": 350,
+  "floor_gbp": 300,
+  "legal": {
+    "title": "UK261 delay compensation (summary)",
+    "points": [
+      "Covers flights departing a UK airport, and flights arriving in the UK on a UK or EU airline.",
+      "Compensation is due when a flight arrives at its final destination 3 hours or more late.",
+      "The amount depends on distance: £220 up to 1,500 km, £350 for 1,500 to 3,500 km, £520 over 3,500 km.",
+      "Edinburgh to Faro is about 2,100 km, so the £350 band applies.",
+      "No compensation is due if the delay was caused by extraordinary circumstances that could not have been avoided, such as severe weather. Routine operational or technical problems are generally not extraordinary.",
+      "Compensation is paid in money. Travel vouchers are only allowed with the passenger's signed agreement."
+    ],
+    "disclaimer": "Summary for demo purposes, not legal advice. TO VERIFY against the official text before the demo."
+  }
+}
