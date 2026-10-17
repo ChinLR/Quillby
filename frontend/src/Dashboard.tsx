@@ -336,7 +336,7 @@ export function Dashboard({
     <div className="min-h-screen text-slate-900">
       <header className="flex flex-wrap items-center gap-3 border-b-4 border-[#1f4a45] bg-[#2f6f66] px-6 py-3 text-white">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">
-          Counter<span className="text-amber-300">bot</span>
+          Counterbot
         </h1>
         <p className="hidden text-sm font-semibold text-teal-50/80 sm:block">We fight the bots, so you don't have to.</p>
         <span className="ml-auto flex items-center gap-2 text-xs text-slate-400">

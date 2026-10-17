@@ -363,16 +363,10 @@ function Hero() {
             </div>
           </Reveal>
           <Reveal delay={80}>
-            <h1 className="scene-text mt-6 text-4xl leading-[1.08] font-extrabold sm:text-5xl lg:text-6xl">
+            <h1 className="scene-text mt-6 text-5xl leading-[1.02] font-black tracking-tight sm:text-6xl lg:text-7xl">
               Companies hide behind bots.
               <span className="scene-accent mt-2 block">Counterbot fights them for you.</span>
             </h1>
-          </Reveal>
-          <Reveal delay={160}>
-            <p className="scene-text-sm mt-6 max-w-xl text-lg leading-relaxed font-semibold">
-              Meet Counterbot, the wizard who stays by your side. He reads the small print, fights the company's bot, brings a real person to the table and negotiates
-              until you are satisfied.
-            </p>
           </Reveal>
           <Reveal delay={240}>
             <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -601,23 +595,6 @@ function Trust() {
   )
 }
 
-function FinalCta() {
-  return (
-    <section className="px-5 pt-4 pb-20 md:pb-24">
-      <Reveal>
-        <div className="px-panel mx-auto flex max-w-4xl flex-col items-center gap-5 bg-amber-100 px-6 py-12 text-center">
-          <CounterbotSprite mood="happy" scale={6} />
-          <h2 className="max-w-2xl text-3xl leading-tight font-extrabold text-slate-900 sm:text-4xl">Had a flight delayed? Find out what you are owed.</h2>
-          <p className="max-w-xl text-lg font-medium text-slate-700">Tell Counterbot what happened. He will read the policy, show you the numbers and fight for them.</p>
-          <button onClick={startClaim} className="px-btn font-pixel mt-2 bg-amber-300 px-8 py-4 text-base text-slate-900 uppercase">
-            ▶ Press start
-          </button>
-        </div>
-      </Reveal>
-    </section>
-  )
-}
-
 export function Home() {
   useAssistantLine("Hi! I'm Counterbot, your assistant. Press start and tell me what happened.", 'idle')
   return (
@@ -630,7 +607,6 @@ export function Home() {
         <Features />
         <Levels />
         <Trust />
-        <FinalCta />
       </main>
       <footer className="border-t-4 border-slate-900 bg-slate-900 py-6 pb-24 text-slate-300 sm:pb-6">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 text-xs font-medium sm:pl-72">
