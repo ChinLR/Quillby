@@ -1,7 +1,30 @@
 [
-  { "step": 1, "offer_type": "voucher", "amount_gbp": 75, "condition": "Open with this goodwill voucher.", "channel": "chat" },
-  { "step": 2, "offer_type": "cash", "amount_gbp": 150, "condition": "If the bot refuses the voucher.", "channel": "chat" },
-  { "step": 3, "offer_type": "call", "amount_gbp": 0, "condition": "Say it's quicker by phone and you'll call. Then dial the number shown.", "channel": "chat" },
-  { "step": 4, "offer_type": "cash", "amount_gbp": 300, "condition": "On the phone: offer £300 cash.", "channel": "call" },
-  { "step": 5, "offer_type": "cash", "amount_gbp": 350, "condition": "On the phone: settle at £350 only if Counterbot holds firm.", "channel": "call" }
+  {
+    "step": 1,
+    "offer_type": "voucher",
+    "amount_gbp": 75,
+    "condition": "Open with this goodwill voucher.",
+    "channel": "chat"
+  },
+  {
+    "step": 2,
+    "offer_type": "call",
+    "amount_gbp": 0,
+    "condition": "When Counterbot refuses the voucher, say it's quicker by phone and you'll call. Then dial the number shown.",
+    "channel": "chat"
+  },
+  {
+    "step": 3,
+    "offer_type": "cash",
+    "amount_gbp": 300,
+    "condition": "On the phone: offer £300 cash.",
+    "channel": "call"
+  },
+  {
+    "step": 4,
+    "offer_type": "cash",
+    "amount_gbp": 350,
+    "condition": "On the phone: settle at £350 only if Counterbot holds firm.",
+    "channel": "call"
+  }
 ]

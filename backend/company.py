@@ -17,7 +17,7 @@ REJECT_RE = re.compile(
 )
 
 # Free-text replies cycle through these, which is what makes it a loop.
-FREE_TEXT_CYCLE = ["apology", "apology_loop", "deflect"]
+FREE_TEXT_CYCLE = ["apology", "deflect"]
 
 
 class MockCompany:

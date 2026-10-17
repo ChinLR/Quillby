@@ -1,7 +1,12 @@
 {
   "lines": [
-    { "step": 1, "text": "Hi, this is Sam from Northwind customer care. Sorry about the trouble with NW182. As a goodwill gesture I can offer you a £75 travel voucher." },
-    { "step": 2, "text": "I understand. I can offer £150 as a cash payment instead." },
-    { "step": 3, "text": "I'm sorry, this will be quicker to sort out over the phone. Let me give you a call." }
+    {
+      "step": 1,
+      "text": "Hi, this is Sam from Northwind customer care. Sorry about the trouble with NW182. As a goodwill gesture I can offer you a £75 travel voucher."
+    },
+    {
+      "step": 2,
+      "text": "I'm sorry, this will be quicker to sort out over the phone. Let me give you a call."
+    }
   ]
 }

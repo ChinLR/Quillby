@@ -68,7 +68,7 @@ CALL_RE = re.compile(
 CALL_POLL_S = 2.0
 
 
-PACE = 1.3  # overall chat speed-up for the demo (1.0 = the original "normal human" pace)
+PACE = 2.2  # overall chat speed-up for the 2-minute demo (1.0 = the original "normal human" pace)
 
 
 def typing_s(sender: str, text: str) -> float:
@@ -369,8 +369,8 @@ class RunBase:
     def voice_first_message(self) -> str:
         c = self.case
         return (
-            f"Hello, you've reached {c.passenger_name}'s line. This is Counterbot, an AI assistant handling "
-            f"{c.passenger_name}'s compensation claim for flight {c.flight_number}. Thanks for calling back."
+            f"Hello, this is Counterbot, an AI assistant handling {c.passenger_name}'s compensation claim "
+            f"for flight {c.flight_number}."
         )
 
     def voice_prompt(self) -> str:
@@ -407,8 +407,9 @@ class RunBase:
             f"If offered less than £{self.floor}, decline and restate the UK261 entitlement of £{self.goal}. "
             f"If offered from £{self.floor} up to £{self.goal}, counter once for £{self.goal}; accept a second offer at or "
             f"above £{self.floor}. Accept £{self.goal} or more straight away.\n"
-            "When you agree an amount, repeat it clearly, ask for written confirmation by email and the payment date, "
-            "thank them and say goodbye."
+            "Keep every turn to one or two short sentences. "
+            "When you agree an amount, repeat it once, ask for written confirmation by email, "
+            "say goodbye and end the call."
         )
 
     async def _call_phase(self):

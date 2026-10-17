@@ -96,7 +96,7 @@ def _system_prompt(c, goal: int, floor: int) -> str:
         "Honesty rules: use only the facts below, never invent evidence or events, never claim to be a human. "
         "State only legal rules that appear in the list below; do not add other claims about what the law requires. "
         "If asked, say you are an assistant acting for the passenger.\n"
-        "Style: firm, polite, natural, like a determined person. At most 2 short sentences, under 35 words. No emojis. "
+        "Style: firm, polite, natural, like a determined person. One or two short sentences, under 22 words. No emojis. "
         f"Refer to the passenger by name in the third person (e.g. '{c.passenger_name} is owed'), never as 'I' or 'me'.\n\n"
         f"Passenger: {c.passenger_name}. Booking {c.booking_ref}. Flight {c.flight_number}, {c.origin} to {c.destination}.\n"
         f"Scheduled arrival {c.scheduled_arrival}, actual arrival {c.actual_arrival}: {c.delay_minutes} minutes late.\n"

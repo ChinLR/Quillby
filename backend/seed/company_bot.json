@@ -4,44 +4,86 @@
       "id": "welcome",
       "text": "Hi! I'm Nova, Northwind Air's virtual assistant. What can I help you with today?",
       "buttons": [
-        { "label": "Manage booking", "next": "manage" },
-        { "label": "Baggage", "next": "baggage" },
-        { "label": "Flight status", "next": "status" },
-        { "label": "Something else", "next": "popular" }
+        {
+          "label": "Manage booking",
+          "next": "manage"
+        },
+        {
+          "label": "Baggage",
+          "next": "baggage"
+        },
+        {
+          "label": "Flight status",
+          "next": "status"
+        },
+        {
+          "label": "Something else",
+          "next": "popular"
+        }
       ]
     },
     {
       "id": "popular",
       "text": "Here are some popular topics:",
       "buttons": [
-        { "label": "Change my flight", "next": "manage" },
-        { "label": "Seat selection", "next": "manage" },
-        { "label": "Special assistance", "next": "manage" }
+        {
+          "label": "Change my flight",
+          "next": "manage"
+        },
+        {
+          "label": "Seat selection",
+          "next": "manage"
+        },
+        {
+          "label": "Special assistance",
+          "next": "manage"
+        }
       ]
     },
     {
       "id": "apology",
       "text": "I'm sorry to hear your journey didn't go as planned. Did that help?",
       "buttons": [
-        { "label": "Yes", "next": "welcome" },
-        { "label": "No", "next": "apology_loop" }
+        {
+          "label": "Yes",
+          "next": "welcome"
+        },
+        {
+          "label": "No",
+          "next": "apology_loop"
+        }
       ]
     },
     {
       "id": "apology_loop",
       "text": "I'm sorry to hear your journey didn't go as planned. Is there anything else I can help with?",
       "buttons": [
-        { "label": "Manage booking", "next": "manage" },
-        { "label": "Baggage", "next": "baggage" },
-        { "label": "Flight status", "next": "status" }
+        {
+          "label": "Manage booking",
+          "next": "manage"
+        },
+        {
+          "label": "Baggage",
+          "next": "baggage"
+        },
+        {
+          "label": "Flight status",
+          "next": "status"
+        }
       ]
     },
     {
       "id": "deflect",
       "text": "Delays can happen due to operational reasons. Compensation is not available for this flight.",
       "buttons": [
-        { "label": "OK", "next": "welcome" },
-        { "label": "Back to menu", "next": "welcome" }
+        {
+          "label": "OK",
+          "next": "welcome"
+        },
+        {
+          "label": "Back to menu",
+          "next": "welcome"
+        }
       ]
     }
   ],
@@ -57,9 +99,9 @@
     "I'm sorry to hear your journey didn't go as planned. Is there anything else I can help with?"
   ],
   "handoff": {
-    "min_loop_rejections": 2,
+    "min_loop_rejections": 1,
     "min_rule_citations": 1,
-    "min_human_requests": 2
+    "min_human_requests": 1
   },
   "fallback_lines": [
     "I need to speak to a human agent about compensation for flight NW182.",
