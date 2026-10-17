@@ -68,6 +68,16 @@ CALL_RE = re.compile(
 CALL_POLL_S = 2.0
 
 
+def typing_s(sender: str, text: str) -> float:
+    """How long a side "types" a message at speed 1 (seconds), so long lines take longer."""
+    n = len(text)
+    if sender == "customer_bot":
+        return 1.5 + n / 28
+    if sender == "human_agent":
+        return 2.5 + n / 40
+    return 1.0 + n / 45  # company bot
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
@@ -188,14 +198,16 @@ class RunBase:
                 waited += 0.1
 
     async def say(self, text: str, clicked: str | None = None):
-        await self.wait(1.2)
-        self.message("customer_bot", self.us_label, text, clicked=clicked, typing_ms=600)
+        t = typing_s("customer_bot", text)
+        await self.wait(t)
+        self.message("customer_bot", self.us_label, text, clicked=clicked, typing_ms=int(t * 1000))
         self._last_us_t = time.monotonic()
 
     async def company_node(self, node_id: str):
-        await self.wait(1.0)
         n = NODES[node_id]
-        self.message("company_bot", BOT_LABEL, n["text"], buttons=buttons_of(node_id), typing_ms=400)
+        t = typing_s("company_bot", n["text"])
+        await self.wait(t)
+        self.message("company_bot", BOT_LABEL, n["text"], buttons=buttons_of(node_id), typing_ms=int(t * 1000))
 
     # the run
 
@@ -229,12 +241,13 @@ class RunBase:
                 if step_i >= len(CHAT_LADDER):
                     await self._ladder_exhausted()
                     return
-                await self.wait(3.0)
+                text = AGENT_LINES[CHAT_LADDER[step_i].step]
+                t = typing_s("human_agent", text)
+                await self.wait(t)
                 if not self.auto_agent:
                     continue
-                text = AGENT_LINES[CHAT_LADDER[step_i].step]
                 step_i += 1
-                self.message("human_agent", AGENT_LABEL, text, typing_ms=2500)
+                self.message("human_agent", AGENT_LABEL, text, typing_ms=int(t * 1000))
             else:
                 text = await self._next_reply()
                 if text is None:
