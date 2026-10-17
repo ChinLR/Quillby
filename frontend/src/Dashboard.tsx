@@ -18,6 +18,7 @@ import type { Claim } from './Landing'
 import { ReportCard } from './ReportCard'
 import { DuelScene } from './DuelScene'
 import { useAssistantLine } from './assistant'
+import { LEGAL_DISCLAIMER } from './copy'
 import type { Mood } from './Sprite'
 import { useInbox } from './useInbox'
 import { useNegotiation } from './useNegotiation'
@@ -67,7 +68,7 @@ function CaseSummary({ c, claim }: { c: Case; claim: Claim | null }) {
               <li key={p}>{p}</li>
             ))}
           </ul>
-          <p className="mt-2 text-xs text-slate-400">{c.legal.disclaimer}</p>
+          <p className="mt-2 text-xs text-slate-400">{LEGAL_DISCLAIMER}</p>
         </details>
         {claim && (
           <div className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
@@ -381,7 +382,7 @@ export function Dashboard({
           )}
           {id && (
             <button onClick={reset} disabled={busy} className="px-btn font-pixel ml-auto bg-white px-4 py-2 text-xs text-slate-900 uppercase disabled:opacity-50">
-              Reset demo
+              Start over
             </button>
           )}
         </div>

@@ -24,6 +24,15 @@ export function CallPanel({
 }) {
   const live = call?.status === 'in_progress'
   const [elapsed, setElapsed] = useState(0)
+  // Operator safety net, not part of the customer experience: Shift+R reveals it.
+  const [operator, setOperator] = useState(false)
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key.toLowerCase() === 'r' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) setOperator((v) => !v)
+    }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [])
 
   useEffect(() => {
     if (!live) return
@@ -63,7 +72,6 @@ export function CallPanel({
           ) : (
             <p className="text-sm text-slate-300">Quillby's voice agent is negotiating live with {airline}.</p>
           )}
-          {call?.detail && <p className="mt-1 text-xs text-amber-300">{call.detail}</p>}
         </div>
         {(live || seconds > 0) && <span className="rounded-lg bg-white/10 px-3 py-1.5 text-2xl font-semibold tabular-nums">{clock(seconds)}</span>}
       </div>
@@ -74,9 +82,9 @@ export function CallPanel({
         </div>
       )}
 
-      {canRecord && (
+      {canRecord && operator && (
         <div className="flex flex-wrap items-center gap-2 border-t border-white/10 bg-black/20 px-5 py-3">
-          <span className="text-xs text-slate-400">If the call can't be read, record the result yourself:</span>
+          <span className="text-xs text-slate-400">Operator:</span>
           <button disabled={busy} onClick={() => onRecord(goal, 'cash')} className="px-btn font-pixel bg-amber-300 px-3 py-1.5 text-xs text-slate-900 uppercase disabled:opacity-50">
             Record result: £{goal} cash
           </button>

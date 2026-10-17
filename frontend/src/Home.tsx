@@ -287,7 +287,7 @@ export function Home() {
           <p>
             <span className="font-pixel text-sm text-slate-50 uppercase">Counterbot</span> · Built at the Edinburgh AI Hackathon
           </p>
-          <p>Not legal advice. Policy summaries are for demonstration and should be checked against the official text.</p>
+          <p>Not legal advice. Please check policy summaries against the official text.</p>
         </div>
       </footer>
     </div>

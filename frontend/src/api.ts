@@ -1,4 +1,5 @@
 import type { components } from './api-types'
+import { friendlyError } from './copy'
 
 type S = components['schemas']
 export type Case = S['Case']
@@ -25,7 +26,7 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(typeof err.detail === 'string' ? err.detail : `Request failed (${res.status})`)
+    throw new Error(typeof err.detail === 'string' ? friendlyError(err.detail) : `Request failed (${res.status})`)
   }
   return res.json() as Promise<T>
 }

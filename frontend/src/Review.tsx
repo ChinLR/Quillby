@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAssistantLine } from './assistant'
+import { LEGAL_DISCLAIMER, SUPPORTED_NOTE } from './copy'
 import { DocWalk, walkDuration } from './DocWalk'
 import type { CheckIns, Claim } from './Landing'
 
@@ -119,7 +120,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
                   </li>
                 ))}
               </ul>
-              <p className="text-xs text-slate-400">{c.legal.disclaimer}</p>
+              <p className="text-xs text-slate-400">{LEGAL_DISCLAIMER}</p>
             </section>
 
             <section className="flex flex-col gap-4 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
@@ -201,8 +202,8 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
               </p>
             </section>
 
-            {!claim.result.supported && claim.result.note && (
-              <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 ring-1 ring-amber-200">{claim.result.note}</p>
+            {!claim.result.supported && (
+              <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 ring-1 ring-amber-200">{SUPPORTED_NOTE}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-3">
