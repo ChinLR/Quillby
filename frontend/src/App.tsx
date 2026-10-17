@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
-import { api } from './api'
+import { AgentWindow } from './AgentWindow'
+import { Dashboard } from './Dashboard'
 
 export default function App() {
-  const [ok, setOk] = useState<boolean | null>(null)
+  const [hash, setHash] = useState(window.location.hash)
   useEffect(() => {
-    api<{ ok: boolean }>('/health').then((r) => setOk(r.ok)).catch(() => setOk(false))
+    const onHash = () => setHash(window.location.hash)
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
   }, [])
-  return (
-    <div className="p-8 text-xl">
-      Backend health: {ok === null ? '...' : ok ? 'OK' : 'DOWN'}
-    </div>
-  )
+  useEffect(() => {
+    document.title = hash === '#/agent' ? 'Agent console · Counterbot' : 'Counterbot'
+  }, [hash])
+  return hash === '#/agent' ? <AgentWindow /> : <Dashboard />
 }
