@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useAssistantLine } from './assistant'
-import { CounterbotSprite, Icon, NovaSprite, SamSprite } from './Sprite'
+import { Cloud, CounterbotSprite, Icon, NovaSprite, SamSprite } from './Sprite'
 
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -351,31 +351,111 @@ function Nav() {
   )
 }
 
+// A collectible trading card for Counterbot: name and HP, an art window with the wizard,
+// attacks with damage, a weakness / resistance footer, and the call to action.
+const MOVES: [string, string, string][] = [
+  ['Claimus!', 'Reads the small print and states your claim.', '30'],
+  ['Loopus Rejectus!', 'Spots menu loops and refuses to play along.', '60'],
+  ['Cashus Maxima!', 'Holds out for money, never vouchers.', '120+'],
+]
+
+function TradingCard() {
+  return (
+    <div className="tcard relative mx-auto w-full max-w-[26rem] transition-transform duration-150 hover:-translate-y-1 hover:-rotate-1 lg:mx-0">
+      <div className="relative overflow-hidden rounded-lg border-[3px] border-slate-900 bg-[#f6edd2] p-3">
+        <div className="flex flex-wrap gap-2">
+          <Tag tone="dark">1 player</Tag>
+          <Tag tone="gold">★ Insert claim</Tag>
+        </div>
+
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <div>
+            <p className="font-pixel text-[11px] text-slate-600 uppercase">
+              <span className="mr-1.5 bg-slate-900 px-1.5 py-0.5 text-amber-300">Basic</span>
+              Wizard
+            </p>
+            <p className="text-3xl leading-none font-black text-slate-900">Counterbot</p>
+          </div>
+          <p className="flex items-center gap-1.5 text-rose-700">
+            <span className="font-pixel text-xs">HP</span>
+            <span className="text-3xl leading-none font-black">120</span>
+            <span className="flex size-7 items-center justify-center border-2 border-slate-900 bg-amber-300 text-sm text-slate-900" aria-hidden>
+              ★
+            </span>
+          </p>
+        </div>
+
+        {/* art window */}
+        <div className="relative mt-3 h-52 overflow-hidden border-[4px] border-[#b9983c] bg-[linear-gradient(to_bottom,#4c9aa6_0_30%,#66b0b5_30%_55%,#83c5c3_55%_100%)]">
+          <Cloud className="absolute top-3 left-2 opacity-90" scale={4} light="#f4f8e8" shade="#cfe3d0" />
+          <Cloud className="absolute top-12 right-2 opacity-90" scale={3} light="#f4f8e8" shade="#cfe3d0" />
+          <div className="absolute inset-x-0 bottom-0 h-8 border-t-4 border-slate-900 bg-[repeating-linear-gradient(90deg,#86a049_0_16px,#6b8a37_16px_32px)]" />
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+            <CounterbotSprite mood="idle" scale={7} idleWave />
+          </div>
+          <span className="animate-pulse absolute top-8 left-[22%] text-xl font-black text-amber-300" aria-hidden>
+            ✦
+          </span>
+          <span className="animate-pulse absolute top-20 right-[20%] text-base font-black text-amber-200 [animation-delay:-0.4s]" aria-hidden>
+            ✦
+          </span>
+          <span className="animate-pulse absolute bottom-24 left-[12%] text-sm font-black text-white [animation-delay:-0.8s]" aria-hidden>
+            ✦
+          </span>
+          <span className="px-sheen pointer-events-none absolute inset-0" />
+        </div>
+        <p className="font-pixel mt-2 border-y-2 border-slate-900 bg-[#e8d9a8] px-2 py-0.5 text-center text-[10px] tracking-wider text-slate-800 uppercase">
+          Wizard of the small print · Lv 6
+        </p>
+
+        <h1 className="mt-3 text-3xl leading-[1.05] font-black tracking-tight text-slate-900 sm:text-4xl">
+          Companies hide behind bots.
+          <span className="mt-1 block text-[#7a2a14]">Counterbot fights them for you.</span>
+        </h1>
+
+        <ul className="mt-3 divide-y-2 divide-dotted divide-slate-400 border-t-2 border-slate-900">
+          {MOVES.map(([name, text, dmg]) => (
+            <li key={name} className="flex items-center gap-2.5 py-2">
+              <span className="flex size-6 shrink-0 items-center justify-center border-2 border-slate-900 bg-amber-300 text-xs text-slate-900" aria-hidden>
+                ★
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] leading-tight font-extrabold text-slate-900">{name}</span>
+                <span className="block text-xs leading-snug font-semibold text-slate-600">{text}</span>
+              </span>
+              <span className="text-2xl font-black text-slate-900 tabular-nums">{dmg}</span>
+            </li>
+          ))}
+        </ul>
+
+        <dl className="mt-1 grid grid-cols-3 gap-2 border-t-2 border-slate-900 pt-2 text-center">
+          {[
+            ['Weakness', 'Loops ×2'],
+            ['Resistance', 'Vouchers −30'],
+            ['Retreat', 'Never'],
+          ].map(([k, v]) => (
+            <div key={k}>
+              <dt className="font-pixel text-[10px] text-slate-500 uppercase">{k}</dt>
+              <dd className="text-xs font-extrabold text-slate-900">{v}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <button onClick={startClaim} className="px-btn font-pixel mt-3 w-full bg-amber-300 px-6 py-3.5 text-base text-slate-900 uppercase">
+          ▶ Start your claim
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function Hero() {
   return (
     <section className="relative overflow-hidden pt-24 md:pt-28">
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="scene-card">
-          <Reveal>
-            <div className="flex flex-wrap gap-2">
-              <Tag tone="dark">1 player</Tag>
-              <Tag tone="gold">★ Insert claim</Tag>
-            </div>
-          </Reveal>
-          <Reveal delay={80}>
-            <h1 className="scene-text mt-6 text-5xl leading-[1.02] font-black tracking-tight sm:text-6xl lg:text-7xl">
-              Companies hide behind bots.
-              <span className="scene-accent mt-2 block">Counterbot fights them for you.</span>
-            </h1>
-          </Reveal>
-          <Reveal delay={240}>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <button onClick={startClaim} className="px-btn font-pixel bg-amber-300 px-6 py-4 text-base text-slate-900 uppercase">
-                ▶ Start your claim
-              </button>
-            </div>
-          </Reveal>
-        </div>
+      <div className="relative mx-auto grid max-w-6xl items-start gap-12 px-5 pb-20 lg:grid-cols-[26rem_1fr]">
+        <Reveal>
+          <TradingCard />
+        </Reveal>
         <Reveal delay={200}>
           <HeroDemo />
         </Reveal>
