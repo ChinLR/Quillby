@@ -192,9 +192,9 @@ function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-30 border-b-4 border-[#1f4a45] bg-[#2f6f66] text-slate-50">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-2">
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2" aria-label="Counterbot, back to top">
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2" aria-label="Quillby: Wizard on Call, back to top">
           <WizardSprite scale={2} bob={false} />
-          <span className="font-pixel text-lg text-slate-50 uppercase">Counterbot</span>
+          <span className="font-pixel text-lg text-slate-50 uppercase">Quillby<span className="hidden sm:inline">: Wizard on call</span></span>
         </button>
         <nav className="font-pixel ml-4 hidden gap-6 text-sm text-amber-200 uppercase md:flex">
           <button onClick={() => scrollTo('how')} className="hover:text-white">
@@ -217,8 +217,8 @@ function Hero() {
           <div className="flex flex-wrap justify-center gap-2">
             <Tag tone="gold">★ Available 24/7</Tag>
           </div>
-          <h1 className="mt-5 text-6xl leading-[1.02] font-black tracking-tight text-slate-900 sm:text-8xl">
-            Wizard <span className="text-[#7a2a14]">on call.</span>
+          <h1 className="mt-5 text-6xl leading-[1.02] font-black tracking-tight text-black sm:text-8xl">
+            Wizard on call.
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-snug font-bold text-slate-700 sm:text-xl">
             Companies hide behind bots. <span className="text-[#7a2a14]">Quillby fights them for you.</span>
@@ -286,7 +286,7 @@ export function Home() {
       <footer className="border-t-4 border-slate-900 bg-slate-900 py-6 pb-24 text-slate-300 sm:pb-6">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 text-xs font-medium">
           <p>
-            <span className="font-pixel text-sm text-slate-50 uppercase">Counterbot</span>
+            <span className="font-pixel text-sm text-slate-50 uppercase">Quillby: Wizard on Call</span>
           </p>
           <p>Not legal advice. Please check policy summaries against the official text.</p>
         </div>

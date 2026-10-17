@@ -60,7 +60,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
     <div className="min-h-screen text-slate-900">
       <header className="flex items-center gap-3 border-b-4 border-[#1f4a45] bg-[#2f6f66] px-6 py-3 text-white">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">
-          Counterbot
+          Quillby<span className="hidden sm:inline">: Wizard on call</span>
         </h1>
         <button onClick={onBack} className="ml-auto text-xs font-medium text-slate-400 hover:text-white">
           ← Change my details

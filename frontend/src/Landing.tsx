@@ -74,7 +74,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
     <div className="min-h-screen text-slate-900">
       <header className="flex items-center gap-3 border-b-4 border-[#1f4a45] bg-[#2f6f66] px-6 py-3 text-white">
         <a href="#/" className="font-serif text-2xl font-semibold tracking-tight">
-          Counterbot
+          Quillby<span className="hidden sm:inline">: Wizard on call</span>
         </a>
         <p className="hidden text-sm font-semibold text-teal-50/80 sm:block">Quillby fights for you, so you don't have to.</p>
       </header>

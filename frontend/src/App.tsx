@@ -20,7 +20,7 @@ function Routes() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
   useEffect(() => {
-    document.title = hash === '#/agent' ? 'Agent console · Counterbot' : 'Counterbot'
+    document.title = hash === '#/agent' ? 'Agent console · Quillby' : 'Quillby: Wizard on Call'
   }, [hash])
 
   const go = (to: string) => {
