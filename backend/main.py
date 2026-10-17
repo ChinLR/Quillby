@@ -1,11 +1,13 @@
 import asyncio
 import os
+import pathlib
 
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 import intake
 from models import (
@@ -245,3 +247,9 @@ def set_auto_agent(body: AutoAgentBody):
     run = get_current()
     run.auto_agent = body.enabled
     return AutoAgentResponse(auto_agent=run.auto_agent)
+
+
+# The fake airline website (see .plans/airline-site-spec.md): open http://localhost:8000/northwind/
+_SITE = pathlib.Path(__file__).parent.parent / "airline-site"
+if _SITE.is_dir():
+    app.mount("/northwind", StaticFiles(directory=_SITE, html=True), name="northwind")

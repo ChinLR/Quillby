@@ -3,6 +3,9 @@
 Handoff notes for the frontend. Newest first. Keep each entry to a few lines.
 Anything that changes an endpoint or schema goes in contract.md too.
 
+## 2026-10-17 Fake airline website: http://localhost:8000/northwind/
+One static page (`airline-site/index.html`, served by the backend, no build step, spec in `.plans/airline-site-spec.md`). Its chat widget shows the run from the airline's side, line by line, with Nova's menu buttons, the "Sam joined the chat" handoff and the call banner. Read only: it polls `GET /api/company/inbox`, so there is no contract change. Open it in a second window next to the dashboard.
+
 ## 2026-10-17 Name is now Li Ren; live-call findings (no shape changes)
 - The demo passenger is **Li Ren** (`case.json`). Labels now read "Counterbot (for Li Ren)" and "Li Ren (you)". Frontend: `Dashboard.tsx` still has the placeholder "Type as Alex…", please change it (and the intake prefill if it names anyone).
 - Real phone call tested end to end: the airline dials the number, Counterbot (ElevenLabs voice) answers and negotiates, the run ends `won` with `resolved_on: "call"`.
