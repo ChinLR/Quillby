@@ -45,6 +45,13 @@ AGENT_LABEL = "Sam (Northwind Support)"
 VOICE_LABEL = "Counterbot (voice)"
 CALLER_LABEL = "Northwind caller"
 
+TAG_RE = re.compile(r"\[[^\]]{1,30}\]\s*")  # voice-model tags like [happy] leak into transcripts
+
+
+def clean_line(text: str) -> str:
+    return TAG_RE.sub("", text).strip()
+
+
 FINISHED = ("won", "walked_away", "failed")
 CALL_PHASE = ("awaiting_call", "on_call")
 STAGE_NAMES = {
@@ -81,7 +88,7 @@ class RunBase:
     def __init__(self, nid: str, case: Case, goal: int, floor: int, speed: float):
         self.id = nid
         self.case = case
-        self.first_name = (case.passenger_name or "the passenger").split()[0]
+        self.first_name = case.passenger_name or "the passenger"  # used in labels and wording
         self.us_label = f"Counterbot (for {self.first_name})"
         self.customer_label = f"{self.first_name} (you)"
         self.goal = goal
@@ -323,6 +330,8 @@ class RunBase:
 
     def _finish_won(self, amount: int, where: str, offer_type: str = "cash"):
         self.accepted = Offer(amount_gbp=amount, offer_type=offer_type, accepted=True)
+        if offer_type == "cash":
+            self.best_offer = max(self.best_offer or 0, amount)
         self.resolved_on = where
         self._emit("offer", offer=self.accepted)
         self.set_status("won", detail=f"£{amount} secured" + (" on the call" if where == "call" else ""))
@@ -355,6 +364,7 @@ class RunBase:
             if m.sender in ("customer_bot", "human_agent") and m.channel == "chat"
         )
         own_words = f"Passenger's own words: {c.summary}\n" if c.summary else ""
+        chat = chat or "(No chat history is available. The airline asked to continue by phone.)"
         return (
             f"You are Counterbot, an AI assistant answering the phone for {c.passenger_name}. The caller is from "
             f"{c.airline} customer care, calling back about a compensation claim they could not settle in chat.\n"
@@ -408,15 +418,22 @@ class RunBase:
                     self.set_call(detail=f"Lost contact with the voice agent ({e}). Use the manual outcome if needed.")
                 continue
 
-            lines = [t for t in data.get("transcript") or [] if t.get("message")]
+            lines = [t for t in data.get("transcript") or [] if clean_line(t.get("message") or "")]
             for t in lines[seen:]:
                 ours = t.get("role") == "agent"
+                text = clean_line(t["message"])
                 self.message(
                     "customer_bot" if ours else "human_agent",
                     VOICE_LABEL if ours else CALLER_LABEL,
-                    t["message"],
+                    text,
                     channel="call",
                 )
+                if not ours:  # an offer the caller made on the call
+                    amount, offer_type = await self._parse_offer(text)
+                    if amount is not None:
+                        self._emit("offer", offer=Offer(amount_gbp=amount, offer_type=offer_type))
+                        if offer_type == "cash":
+                            self.best_offer = max(self.best_offer or 0, amount)
             seen = len(lines)
 
             st = data.get("status")
@@ -427,7 +444,7 @@ class RunBase:
             ):
                 self.set_call(status=mapped, duration_seconds=duration)
             if st == "done" and self.status not in FINISHED:
-                amount, offer_type = await self._read_call_outcome([(t.get("role"), t["message"]) for t in lines])
+                amount, offer_type = await self._read_call_outcome([(t.get("role"), clean_line(t["message"])) for t in lines])
                 self.apply_call_outcome(amount, offer_type)
                 return
             if st == "failed":
@@ -444,11 +461,6 @@ class RunBase:
         return 0, "none"
 
     def apply_call_outcome(self, amount: int, offer_type: str):
-        # Offers the caller made on the call, for the board.
-        for m in [m for m in self.messages() if m.channel == "call" and m.sender == "human_agent"]:
-            a, t = parse_offer(m.text)
-            if a:
-                self._emit("offer", offer=Offer(amount_gbp=a, offer_type=t))
         if offer_type == "none" or amount <= 0:
             self.resolved_on = "none"
             self.set_status("walked_away", detail="No deal on the call")

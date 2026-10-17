@@ -61,7 +61,7 @@ Pitch line: "Companies automated customer service to avoid talking to you. We au
 
 All names are fictional. No real brands.
 
-- Passenger: Alex Morgan, booking ref `NW4821`.
+- Passenger: Li Ren, booking ref `NW4821`.
 - Airline: Northwind Air (fictional).
 - Flight: Edinburgh to Faro, scheduled arrival 11:10, actual arrival 15:05 (3 h 55 min late).
 - Airline's stated reason: "operational reasons" (not an extraordinary circumstance).
@@ -149,7 +149,7 @@ Single screen:
 
 ## Demo script (about 3 minutes)
 
-1. Show the case: Alex's flight was 3 h 55 min late, the airline offers nothing. Goal GBP 350.
+1. Show the case: Li Ren's flight was 3 h 55 min late, the airline offers nothing. Goal GBP 350.
 2. Press Start. Our bot works through the airline's menu and loops while the board narrates its tactic.
 3. The bot refuses the "Did that help?" trap and states the claim. Pressure climbs.
 4. The bot cites UK261 and refutes "operational reasons". The company bot gives up and hands over.

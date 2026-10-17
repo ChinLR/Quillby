@@ -66,3 +66,33 @@ async def get_conversation(conversation_id: str) -> dict:
         r = await c.get(f"{API}/conversations/{conversation_id}")
         r.raise_for_status()
         return r.json()
+
+
+async def phone_number_id() -> str:
+    """ElevenLabs' id for the Twilio number assigned to the agent ("" if none)."""
+    async with _client() as c:
+        r = await c.get(f"{API}/phone-numbers", params={"agent_id": _agent_id()})
+        r.raise_for_status()
+        data = r.json()
+    items = data if isinstance(data, list) else data.get("phone_numbers", [])
+    for n in items:
+        if (n.get("assigned_agent") or {}).get("agent_id") == _agent_id():
+            return n.get("phone_number_id", "")
+    return ""
+
+
+async def start_outbound_call(to_number: str, prompt: str | None = None, first_message: str | None = None) -> dict:
+    """Make the agent phone to_number from its Twilio number. Returns ElevenLabs' response."""
+    body = {"agent_id": _agent_id(), "agent_phone_number_id": await phone_number_id(), "to_number": to_number}
+    agent: dict = {}
+    if first_message:
+        agent["first_message"] = first_message
+    if prompt:
+        agent["prompt"] = {"prompt": prompt}
+    if agent:
+        body["conversation_initiation_client_data"] = {"conversation_config_override": {"agent": agent}}
+    async with _client() as c:
+        r = await c.post(f"{API}/twilio/outbound-call", json=body)
+        if r.status_code >= 400:
+            raise RuntimeError(f"{r.status_code}: {r.text[:300]}")
+        return r.json()

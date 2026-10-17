@@ -3,6 +3,13 @@
 Handoff notes for the frontend. Newest first. Keep each entry to a few lines.
 Anything that changes an endpoint or schema goes in contract.md too.
 
+## 2026-10-17 Name is now Li Ren; live-call findings (no shape changes)
+- The demo passenger is **Li Ren** (`case.json`). Labels now read "Counterbot (for Li Ren)" and "Li Ren (you)". Frontend: `Dashboard.tsx` still has the placeholder "Type as Alex…", please change it (and the intake prefill if it names anyone).
+- Real phone call tested end to end: the airline dials the number, Counterbot (ElevenLabs voice) answers and negotiates, the run ends `won` with `resolved_on: "call"`.
+- **The call transcript is not live.** `on_call` fires when the call connects, but ElevenLabs only fills in the transcript and `duration_seconds` after the call ends, so all `channel: "call"` lines arrive at once at the end. UI: run your own timer from the `on_call` status event and show "Call in progress" until the lines arrive.
+- Call lines now have voice tags like "[happy]" stripped. Offers the caller makes on the call arrive as `offer` events, and `best_offer_gbp` equals the accepted amount after a win.
+- Fake airline website: the data it needs is already in the stream (`company_bot` and `human_agent` messages with `buttons`). Showing the live chat from `/events` needs no backend change. Keep it out of `/frontend` unless you agree with Person B, or put it in its own folder.
+
 ## 2026-10-17 v2 backend is live: intake + call phase (contract v2, all additive)
 Pull, run `npm run types`. New things to build, in priority order:
 1. **Intake screen** before the dashboard: textarea "What went wrong?" (prefill: "My Northwind flight from Edinburgh to Faro landed almost 4 hours late and they blamed operational reasons. I want my compensation."), optional goal and minimum. `POST /api/intake` returns `{ supported, note, case }`. Show the case as a confirm card plus `note`. If `supported` is false, show the note and disable Start (Start would return 409). Any complaint is accepted; only flight delays run.
