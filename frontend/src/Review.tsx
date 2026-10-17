@@ -142,7 +142,9 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
               </p>
             </section>
 
-            {claim.result.note && <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 ring-1 ring-amber-200">{claim.result.note}</p>}
+            {!claim.result.supported && claim.result.note && (
+              <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900 ring-1 ring-amber-200">{claim.result.note}</p>
+            )}
 
             <div className="flex flex-wrap items-center gap-3">
               <button
@@ -152,7 +154,9 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
               >
                 Let Counterbot fight for this
               </button>
-              <p className="text-sm text-slate-500">It will deal with their bot and a person on your behalf.</p>
+              <p className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-800 ring-1 ring-slate-200">
+                It will deal with their bot and a person on your behalf.
+              </p>
             </div>
           </>
         )}
