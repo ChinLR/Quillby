@@ -57,7 +57,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">
-        <div>
+        <div className="scene-card">
           <h2 className="font-serif text-5xl leading-[1.05] font-extrabold tracking-tight scene-text">How can we help?</h2>
           <p className="scene-text-sm mt-2 font-semibold">
             Tell us what happened, in your own words, and share anything you have. We'll look through it with you and see what you may be owed.

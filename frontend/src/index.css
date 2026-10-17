@@ -109,7 +109,7 @@ html {
   scroll-behavior: smooth;
 }
 body {
-  background-color: #8ccdc4;
+  background-color: #f1cc94;
   color: var(--color-slate-900);
   -webkit-font-smoothing: antialiased;
 }
@@ -214,15 +214,23 @@ button.px-btn:active:not(:disabled) {
     0 6px 0 0 rgba(20, 35, 32, 0.55);
 }
 
-/* Text that sits directly on the landscape: dark ink with a faint light edge, no outlines. */
+/* Text that sits directly on the landscape: dark brown ink with a faint light edge, no outlines. */
 .scene-text,
 .scene-text-sm {
-  color: #14302c;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  color: #2e1d12;
+  text-shadow: 0 1px 0 rgba(255, 248, 226, 0.55);
+}
+.scene-card {
+  background: rgba(250, 240, 218, 0.86);
+  border: 3px solid #4a3827;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 5px 0 rgba(46, 29, 18, 0.35);
+  backdrop-filter: blur(1.5px);
 }
 .scene-accent {
-  color: #17523f;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  color: #7a2a14;
+  text-shadow: 0 1px 0 rgba(255, 248, 226, 0.55);
 }
 @keyframes px-float {
   0%,

@@ -373,7 +373,7 @@ export function Dashboard({
               Resume autopilot
             </button>
           ) : callPhase ? (
-            <p className="scene-text-sm text-sm font-semibold">On the phone: autopilot is handling the call.</p>
+            <p className="scene-card px-3 py-2 text-sm font-semibold text-slate-900">On the phone: autopilot is handling the call.</p>
           ) : (
             <button onClick={() => run(() => pauseNegotiation(id))} disabled={busy} className="px-btn font-pixel bg-white px-5 py-2.5 text-sm text-slate-900 uppercase disabled:opacity-50">
               Step in
@@ -394,7 +394,7 @@ export function Dashboard({
             </label>
           )}
           {id && (
-            <button onClick={reset} disabled={busy} className="scene-text-sm ml-auto rounded-lg px-4 py-2.5 text-sm font-bold hover:bg-white/10 disabled:opacity-50">
+            <button onClick={reset} disabled={busy} className="px-btn font-pixel ml-auto bg-white px-4 py-2 text-xs text-slate-900 uppercase disabled:opacity-50">
               Reset demo
             </button>
           )}

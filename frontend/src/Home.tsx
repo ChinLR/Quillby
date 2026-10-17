@@ -224,7 +224,7 @@ function Hero() {
   return (
     <section className="relative overflow-hidden pt-24 md:pt-28">
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 lg:grid-cols-[1.05fr_0.95fr]">
-        <div>
+        <div className="scene-card">
           <Reveal>
             <div className="flex flex-wrap gap-2">
               <Tag tone="dark">1 player</Tag>
@@ -286,7 +286,7 @@ function Problem() {
   return (
     <section className="py-20 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
-        <Reveal className="max-w-3xl">
+        <Reveal className="scene-card max-w-3xl">
           <Tag tone="gold">The problem</Tag>
           <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">They put a bot between you and a human, on purpose.</h2>
           <p className="scene-text-sm mt-4 text-lg font-semibold">Most players quit long before the company has to pay. Counterbot is built not to.</p>
@@ -342,7 +342,7 @@ function HowItWorks() {
   return (
     <section id="how" className="scroll-mt-16 py-20 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
-        <Reveal className="max-w-3xl">
+        <Reveal className="scene-card max-w-3xl">
           <Tag>How to play</Tag>
           <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">From “they ignored me” to “they paid me”, in four quests.</h2>
         </Reveal>
@@ -378,7 +378,7 @@ function Features() {
   return (
     <section id="features" className="scroll-mt-16 py-20 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
-        <Reveal className="max-w-3xl">
+        <Reveal className="scene-card max-w-3xl">
           <Tag tone="gold">Skills</Tag>
           <h2 className="mt-4 text-3xl leading-tight font-extrabold scene-text sm:text-4xl">Everything a good advocate would do, unlocked from the start.</h2>
         </Reveal>
