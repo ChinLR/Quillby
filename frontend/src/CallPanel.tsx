@@ -24,16 +24,6 @@ export function CallPanel({
 }) {
   const live = call?.status === 'in_progress'
   const [elapsed, setElapsed] = useState(0)
-  // Operator safety net, not part of the customer experience: Shift+R reveals it.
-  const [operator, setOperator] = useState(false)
-  useEffect(() => {
-    const on = (e: KeyboardEvent) => {
-      if (e.shiftKey && e.key.toLowerCase() === 'r' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) setOperator((v) => !v)
-    }
-    window.addEventListener('keydown', on)
-    return () => window.removeEventListener('keydown', on)
-  }, [])
-
   useEffect(() => {
     if (!live) return
     setElapsed(0)
@@ -55,6 +45,16 @@ export function CallPanel({
 
   return (
     <section className="overflow-hidden rounded-2xl bg-slate-900 text-white ring-1 ring-slate-800">
+      {canRecord && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 bg-black/20 px-5 py-3">
+          <button disabled={busy} onClick={() => onRecord(goal, 'cash')} className="px-btn font-pixel bg-amber-300 px-4 py-2 text-xs text-slate-900 uppercase disabled:opacity-50">
+            ★ Negotiation success
+          </button>
+          <button disabled={busy} onClick={() => onRecord(0, 'none')} className="rounded-md bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20 disabled:opacity-50">
+            No deal
+          </button>
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-4 p-5">
         <span className="relative flex size-12 items-center justify-center rounded-full bg-emerald-500 text-2xl">
                     <span className="relative text-[11px] font-semibold tracking-[0.12em] uppercase" aria-hidden>
@@ -82,17 +82,6 @@ export function CallPanel({
         </div>
       )}
 
-      {canRecord && operator && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-white/10 bg-black/20 px-5 py-3">
-          <span className="text-xs text-slate-400">Operator:</span>
-          <button disabled={busy} onClick={() => onRecord(goal, 'cash')} className="px-btn font-pixel bg-amber-300 px-3 py-1.5 text-xs text-slate-900 uppercase disabled:opacity-50">
-            Record result: £{goal} cash
-          </button>
-          <button disabled={busy} onClick={() => onRecord(0, 'none')} className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50">
-            No deal
-          </button>
-        </div>
-      )}
     </section>
   )
 }
