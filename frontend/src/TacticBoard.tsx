@@ -108,6 +108,9 @@ export function TacticBoard({
         <Section title="Offers">
           <ul className="flex flex-col gap-1.5">
             {offers.map((o, i) => {
+              // The engine re-sends an offer with accepted: true when it takes it; show only that one.
+              const next = offers[i + 1]
+              if (next?.accepted && next.amount_gbp === o.amount_gbp && next.offer_type === o.offer_type) return null
               const verdict = o.accepted
                 ? ['Accepted', 'bg-emerald-100 text-emerald-800']
                 : o.offer_type === 'voucher'
