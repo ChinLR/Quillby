@@ -5,8 +5,6 @@ import type { IntakeResult } from './api'
 export type Claim = {
   result: IntakeResult
   description: string
-  goal: number | null
-  floor: number | null
   files: File[]
 }
 
@@ -14,31 +12,26 @@ const PREFILL =
   'My Northwind flight from Edinburgh to Faro landed almost 4 hours late and they blamed operational reasons. I want my compensation.'
 
 const kb = (n: number) => (n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1000))} KB`)
-const num = (v: string) => (v.trim() === '' ? null : Number(v))
-const time = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 
-export function Landing({ onStart }: { onStart: (claim: Claim) => void }) {
+export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
   const [description, setDescription] = useState(PREFILL)
-  const [goal, setGoal] = useState('')
-  const [floor, setFloor] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [drag, setDrag] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [result, setResult] = useState<IntakeResult | null>(null)
   const picker = useRef<HTMLInputElement>(null)
 
   const addFiles = (list: FileList | null) => {
     if (!list) return
     setFiles((prev) => [...prev, ...Array.from(list).filter((f) => !prev.some((p) => p.name === f.name && p.size === f.size))])
-    setResult(null)
   }
 
   const analyse = async () => {
     setBusy(true)
     setError('')
     try {
-      setResult(await submitIntake({ description: description.trim(), goal_gbp: num(goal), floor_gbp: num(floor) }))
+      const result = await submitIntake({ description: description.trim() })
+      onReview({ result, description: description.trim(), files })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong')
     } finally {
@@ -47,7 +40,6 @@ export function Landing({ onStart }: { onStart: (claim: Claim) => void }) {
   }
 
   const tooShort = description.trim().length < 10
-  const c = result?.case
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
@@ -58,62 +50,29 @@ export function Landing({ onStart }: { onStart: (claim: Claim) => void }) {
         <p className="hidden text-sm text-slate-400 sm:block">Their bot kept you out. Yours gets you in.</p>
       </header>
 
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 p-4 md:p-8">
+      <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Tell us what the company did.</h2>
+          <h2 className="text-3xl font-bold tracking-tight">How can we help?</h2>
           <p className="mt-2 text-slate-600">
-            Describe the problem in your own words and attach anything that backs it up. Counterbot fights their bot, forces a human onto
-            the chat, then negotiates for you.
+            Tell us what happened, in your own words, and share anything you have. We'll look through it with you and see what you may be owed.
           </p>
         </div>
 
-        <section className="flex flex-col gap-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
+        <section className="flex flex-col gap-5 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
           <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-semibold">What went wrong?</span>
+            <span className="text-sm font-semibold">What happened?</span>
             <textarea
               value={description}
-              onChange={(e) => {
-                setDescription(e.target.value)
-                setResult(null)
-              }}
+              onChange={(e) => setDescription(e.target.value)}
               rows={6}
-              placeholder="Which company, what happened, when, what they said, what you want…"
+              placeholder="Take your time. What went wrong, when, and what did the company tell you?"
               className="resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm leading-relaxed focus:border-indigo-500 focus:outline-none"
             />
-            <span className="text-xs text-slate-400">Include dates, booking references, what the company told you and what you were promised.</span>
+            <span className="text-xs text-slate-400">Dates, booking references and anything they said to you all help.</span>
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1.5">
-              <span className="text-sm font-semibold">What do you want? (£)</span>
-              <input
-                value={goal}
-                onChange={(e) => {
-                  setGoal(e.target.value.replace(/\D/g, ''))
-                  setResult(null)
-                }}
-                inputMode="numeric"
-                placeholder="350"
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm tabular-nums focus:border-indigo-500 focus:outline-none"
-              />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-sm font-semibold">Lowest you'd accept (£)</span>
-              <input
-                value={floor}
-                onChange={(e) => {
-                  setFloor(e.target.value.replace(/\D/g, ''))
-                  setResult(null)
-                }}
-                inputMode="numeric"
-                placeholder="300"
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm tabular-nums focus:border-indigo-500 focus:outline-none"
-              />
-            </label>
-          </div>
-
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold">Receipts and documents</span>
+            <span className="text-sm font-semibold">Anything to share with us?</span>
             <div
               onDragOver={(e) => {
                 e.preventDefault()
@@ -127,14 +86,20 @@ export function Landing({ onStart }: { onStart: (claim: Claim) => void }) {
               }}
               className={`flex flex-col items-center gap-1 rounded-xl border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${drag ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 bg-slate-50'}`}
             >
-              <p className="text-slate-600">Drop booking confirmations, receipts, emails or screenshots here</p>
+              <p className="text-slate-600">Booking confirmations, receipts, emails or screenshots</p>
               <button type="button" onClick={() => picker.current?.click()} className="font-medium text-indigo-600 hover:underline">
-                or choose files
+                Choose files, or drop them here
               </button>
-              <input ref={picker} type="file" multiple className="hidden" onChange={(e) => {
-                addFiles(e.target.files)
-                e.target.value = ''
-              }} />
+              <input
+                ref={picker}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  addFiles(e.target.files)
+                  e.target.value = ''
+                }}
+              />
             </div>
             {files.length > 0 && (
               <ul className="flex flex-col gap-1.5">
@@ -150,7 +115,6 @@ export function Landing({ onStart }: { onStart: (claim: Claim) => void }) {
                 ))}
               </ul>
             )}
-            <p className="text-xs text-slate-400">Documents stay in this browser for now. Counterbot negotiates from your description.</p>
           </div>
 
           {error && <p className="rounded-lg bg-rose-50 px-4 py-2 text-sm text-rose-700 ring-1 ring-rose-200">{error}</p>}
@@ -158,55 +122,11 @@ export function Landing({ onStart }: { onStart: (claim: Claim) => void }) {
           <button
             onClick={analyse}
             disabled={busy || tooShort}
-            className="self-start rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+            className="self-start rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
           >
-            {busy ? 'Reading your case…' : result ? 'Update my case' : 'Build my case'}
+            {busy ? 'One moment…' : 'Take a look at my case'}
           </button>
         </section>
-
-        {busy && !result && <div className="h-40 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200" />}
-
-        {result && c && (
-          <section className="flex flex-col gap-4 rounded-2xl bg-white p-5 ring-2 ring-indigo-500">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm text-slate-500">
-                  {c.passenger_name} · Booking {c.booking_ref} · {c.airline} {c.flight_number}
-                </p>
-                <p className="text-xl font-semibold">
-                  {c.origin} → {c.destination}
-                </p>
-                <p className="text-sm text-slate-600">
-                  Due {time(c.scheduled_arrival)}, landed {time(c.actual_arrival)}:{' '}
-                  <b className="text-rose-600">{Math.floor(c.delay_minutes / 60)}h {c.delay_minutes % 60}m late</b>. Airline says “{c.airline_reason}”.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <div className="rounded-xl bg-indigo-50 px-4 py-2 text-center">
-                  <p className="text-xs font-medium text-indigo-700">Goal</p>
-                  <p className="text-xl font-bold text-indigo-900 tabular-nums">£{c.goal_gbp}</p>
-                </div>
-                <div className="rounded-xl bg-slate-100 px-4 py-2 text-center">
-                  <p className="text-xs font-medium text-slate-600">Floor</p>
-                  <p className="text-xl font-bold text-slate-800 tabular-nums">£{c.floor_gbp}</p>
-                </div>
-              </div>
-            </div>
-            {c.summary && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">“{c.summary}”</p>}
-            {result.note && (
-              <p className={`rounded-lg px-3 py-2 text-sm ring-1 ${result.supported ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-amber-50 text-amber-900 ring-amber-300'}`}>
-                {result.note}
-              </p>
-            )}
-            <button
-              onClick={() => onStart({ result, description: description.trim(), goal: num(goal), floor: num(floor), files })}
-              disabled={!result.supported}
-              className="self-start rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Start Counterbot
-            </button>
-          </section>
-        )}
       </main>
     </div>
   )

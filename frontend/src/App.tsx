@@ -3,8 +3,9 @@ import { AgentWindow } from './AgentWindow'
 import { Dashboard } from './Dashboard'
 import { Landing } from './Landing'
 import type { Claim } from './Landing'
+import { Review } from './Review'
 
-// Routes: '' = landing (intake), '#/run' = dashboard, '#/agent' = second-laptop agent window.
+// Routes: '' = landing, '#/review' = findings, '#/run' = dashboard, '#/agent' = second-laptop agent window.
 export default function App() {
   const [hash, setHash] = useState(window.location.hash)
   const [claim, setClaim] = useState<Claim | null>(null)
@@ -19,6 +20,10 @@ export default function App() {
     document.title = hash === '#/agent' ? 'Agent console · Counterbot' : 'Counterbot'
   }, [hash])
 
+  const go = (to: string) => {
+    window.location.hash = to
+  }
+
   if (hash === '#/agent') return <AgentWindow />
   if (hash === '#/run')
     return (
@@ -28,16 +33,27 @@ export default function App() {
         onStarted={() => setAutoStart(false)}
         onNewClaim={() => {
           setClaim(null)
-          window.location.hash = ''
+          go('')
+        }}
+      />
+    )
+  // The findings page needs a claim; a refresh loses it, so send people back to the start.
+  if (hash === '#/review' && claim)
+    return (
+      <Review
+        claim={claim}
+        onBack={() => go('')}
+        onStart={() => {
+          setAutoStart(true)
+          go('#/run')
         }}
       />
     )
   return (
     <Landing
-      onStart={(c) => {
+      onReview={(c) => {
         setClaim(c)
-        setAutoStart(true)
-        window.location.hash = '#/run'
+        go('#/review')
       }}
     />
   )
