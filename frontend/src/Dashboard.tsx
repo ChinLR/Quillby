@@ -15,6 +15,7 @@ import type { Case, Report } from './api'
 import { CallPanel } from './CallPanel'
 import { Chat } from './Chat'
 import type { Claim } from './Landing'
+import { Ending } from './Ending'
 import { ReportCard } from './ReportCard'
 import { DuelScene } from './DuelScene'
 import { useAssistantLine } from './assistant'
@@ -114,6 +115,7 @@ export function Dashboard({
   const [caseData, setCaseData] = useState<Case | null>(null)
   const [id, setId] = useState<string | null>(store.get)
   const [report, setReport] = useState<Report | null>(null)
+  const [endingShut, setEndingShut] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [draft, setDraft] = useState('')
@@ -272,6 +274,7 @@ export function Dashboard({
 
   useEffect(() => {
     setReport(null)
+    setEndingShut(false)
     if (id && finished) getReport(id).then(setReport).catch((e) => setError(e.message))
   }, [id, finished])
 
@@ -386,6 +389,10 @@ export function Dashboard({
             </button>
           )}
         </div>
+
+        {report && finished && !endingShut && (
+          <Ending report={report} onReview={() => setEndingShut(true)} onAgain={start} onNew={reset} />
+        )}
 
         {error && <p className="rounded-lg bg-rose-50 px-4 py-2 text-sm text-rose-700 ring-1 ring-rose-200">{error}</p>}
 
