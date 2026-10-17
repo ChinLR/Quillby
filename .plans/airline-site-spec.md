@@ -24,7 +24,7 @@ Seen from the airline's customer view:
 | Quick-reply buttons | Pills under the airline's message. When the next customer message has a `clicked_button`, that pill highlights and the rest grey out. |
 | Handoff | A divider line "Sam joined the chat" before the first `human_agent` message. |
 | Call | When `call_number` is set, a banner: "Sam is calling Li Ren's assistant on +…". Once call lines exist (`channel: "call"`): "Call completed. Thanks for your patience." Call lines themselves are not shown in the chat. |
-| Input box | Disabled: "Your assistant is typing for you". It makes the point that the customer is not typing. |
+| Input box | Disabled (nobody types in it). Cosmetic animation: when Counterbot's message arrives, its text types out letter by letter in the box and is then "sent"; when Counterbot clicks a menu button, that pill flashes before the message lands. It is still a mirror of what the backend decided: nothing is really typed into the page. |
 | Reset | If the inbox returns 404 (no negotiation, or reset), the widget clears and closes. |
 
 Messages are revealed one at a time from a queue, so even if several arrive in one poll they appear line by line.

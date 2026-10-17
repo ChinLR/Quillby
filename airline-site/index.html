@@ -72,7 +72,11 @@
   .banner.done { background: #e9f8ef; color: #1b6b3a; border-top-color: #bfe5cd; }
   .input { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); background: #fff; }
   .input input { flex: 1; border: 1px solid var(--line); border-radius: 20px; padding: 9px 14px; font-size: 14px; background: #f3f7fc; }
-  .input button { border: 0; border-radius: 20px; background: #c5d3e6; color: #fff; padding: 0 16px; font-weight: 600; }
+  .input button { border: 0; border-radius: 20px; background: #c5d3e6; color: #fff; padding: 0 16px; font-weight: 600; transition: background .12s; }
+  .input input:disabled { color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: 1; }
+  .input.typing input { background: #fff; border-color: var(--blue); }
+  .input.sending button { background: var(--blue); }
+  .pill.clicking { background: var(--blue); color: #fff; transform: scale(1.06); transition: transform .15s; }
 </style>
 </head>
 <body>
@@ -114,14 +118,13 @@
   </div>
   <div id="log"></div>
   <p class="banner" id="banner"></p>
-  <div class="input"><input disabled placeholder="Your assistant is typing for you"><button disabled>Send</button></div>
+  <div class="input" id="inputBar"><input id="field" disabled placeholder="Your assistant types for you"><button disabled>Send</button></div>
 </div>
 
 <script>
 (function () {
   const POLL_MS = 800;
   const TYPING_MS = 700;   // airline side: typing dots before each message
-  const GAP_MS = 350;      // customer side: short gap between lines
 
   const $ = (id) => document.getElementById(id);
   const log = $("log"), panel = $("panel"), banner = $("banner");
@@ -204,12 +207,43 @@
       const m = queue.shift();
       if (!panel.classList.contains("open")) { panel.classList.add("open"); $("dot").style.display = "none"; }
       if (isCompany(m)) { showTyping(); await sleep(TYPING_MS); hideTyping(); }
-      else { await sleep(GAP_MS); }
+      else if (m.clicked_button) { await clickPill(m.clicked_button); }
+      else { await typeAndSend(m.text); }
       addRow(m);
     }
     revealing = false;
   }
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const field = $("field"), bar = $("inputBar");
+
+  // Type the message into the chat box, then "send" it. Cosmetic: the text was already decided by the backend.
+  async function typeAndSend(text) {
+    bar.classList.add("typing");
+    field.value = "";
+    const charMs = Math.max(8, Math.min(40, 3500 / Math.max(text.length, 1)));
+    for (let i = 1; i <= text.length; i++) {
+      field.value = text.slice(0, i);
+      field.scrollLeft = field.scrollWidth;  // keep the newest letters in view
+      await sleep(charMs);
+    }
+    await sleep(250);
+    bar.classList.add("sending");
+    await sleep(200);
+    field.value = "";
+    bar.classList.remove("typing", "sending");
+  }
+
+  // Counterbot clicks one of the airline's quick-reply buttons: flash it before the message lands.
+  async function clickPill(label) {
+    const all = log.querySelectorAll(".pills");
+    const last = all[all.length - 1];
+    const pill = last && [...last.querySelectorAll(".pill")].find((p) => p.textContent === label);
+    if (!pill) return;
+    await sleep(500);
+    pill.classList.add("clicking");
+    await sleep(600);
+    pill.classList.remove("clicking");
+  }
 
   function reset() {
     seen = new Set(); queue = []; shown = []; humanJoined = false; hadData = false;
