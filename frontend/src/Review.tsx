@@ -177,13 +177,13 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
 
             <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
               <div>
-                <h3 className="text-sm font-semibold">You stay informed</h3>
-                <p className="text-sm text-slate-500">Quillby keeps fighting for you the whole way. It will tell you straight away if any of these happen, and you can step in whenever you like.</p>
+                <h3 className="text-sm font-semibold">Alert me if…</h3>
+                <p className="text-sm text-slate-500">Quillby keeps fighting for you either way. Tick these and he will also flash you a message the moment it happens.</p>
               </div>
               {(
                 [
-                  ['voucher', `${c.airline} offers a voucher instead of money`],
-                  ['belowFloor', `${c.airline} offers less than £${amountError ? c.floor_gbp : floorN}`],
+                  ['voucher', `…${c.airline} offers a voucher instead of money`],
+                  ['belowFloor', `…${c.airline} offers less than £${amountError ? c.floor_gbp : floorN}, your lowest`],
                 ] as const
               ).map(([key, label]) => (
                 <label key={key} className="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
@@ -197,7 +197,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
                 </label>
               ))}
               <p className="text-xs text-slate-400">
-                If {c.airline} asks to phone, or the talks end without a deal, we'll always tell you straight away.
+                Whatever you tick, you will always hear straight away if {c.airline} asks to phone, says it is their final offer (you decide what happens next), or the talks end without a deal.
               </p>
             </section>
 

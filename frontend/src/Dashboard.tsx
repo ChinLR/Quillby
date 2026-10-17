@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   getCase,
+  getNegotiation,
   getReport,
   pauseNegotiation,
   recordCallOutcome,
@@ -130,9 +131,20 @@ export function Dashboard({
   const seenOffers = useRef(0)
   const seenMessages = useRef(0)
   const airline = caseData?.airline ?? 'The airline'
-  // What the customer chose after reading the policy wins over the policy's suggestion.
-  const floorGbp = claim?.floor ?? caseData?.floor_gbp ?? 0
-  const goalGbp = claim?.goal ?? caseData?.goal_gbp ?? 0
+  // The run itself is the source of truth for goal and floor (it survives a reload); before a run, what the
+  // customer chose after reading the policy wins over the policy's suggestion.
+  const [runAmounts, setRunAmounts] = useState<{ goal: number; floor: number } | null>(null)
+  useEffect(() => {
+    if (!id) {
+      setRunAmounts(null)
+      return
+    }
+    getNegotiation(id)
+      .then((s) => setRunAmounts({ goal: s.goal_gbp, floor: s.floor_gbp }))
+      .catch(() => {})
+  }, [id])
+  const floorGbp = runAmounts?.floor ?? claim?.floor ?? caseData?.floor_gbp ?? 0
+  const goalGbp = runAmounts?.goal ?? claim?.goal ?? caseData?.goal_gbp ?? 0
   const check = claim?.checkIns
   useEffect(() => {
     seenOffers.current = 0
@@ -278,6 +290,7 @@ export function Dashboard({
   const start = () =>
     run(async () => {
       const s = await startNegotiation({ speed: 1, goal_gbp: claim?.goal, floor_gbp: claim?.floor })
+      setRunAmounts({ goal: s.goal_gbp, floor: s.floor_gbp })
       store.set(s.id)
       setId(s.id)
     })
