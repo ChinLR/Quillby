@@ -338,7 +338,7 @@ export function Dashboard({
         <h1 className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
         </h1>
-        <p className="hidden text-sm text-slate-400 sm:block">We read the small print, so you don't have to.</p>
+        <p className="hidden text-sm text-slate-400 sm:block">We fight the bots so you don't have to.</p>
         <span className="ml-auto flex items-center gap-2 text-xs text-slate-400">
           {id && (
             <>

@@ -53,7 +53,7 @@ export function Landing({ onReview }: { onReview: (claim: Claim) => void }) {
         <a href="#/" className="font-serif text-2xl font-semibold tracking-tight">
           Counter<span className="text-indigo-400">bot</span>
         </a>
-        <p className="hidden text-sm text-slate-400 sm:block">We read the small print, so you don't have to.</p>
+        <p className="hidden text-sm text-slate-400 sm:block">We fight the bots so you don't have to.</p>
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">
