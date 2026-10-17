@@ -133,12 +133,14 @@ export function useNegotiation(id: string | null, speed = 1) {
   // even while the chat is still catching up at reading pace.
   const raw = useMemo(() => {
     const offers: Offer[] = []
+    const messages: Message[] = []
     let status: StatusUpdate | null = null
     for (const e of events) {
       if (e.offer) offers.push(e.offer)
+      if (e.message) messages.push(e.message)
       if (e.status) status = e.status
     }
-    return { rawOffers: offers, rawStatus: status }
+    return { rawOffers: offers, rawMessages: messages, rawStatus: status }
   }, [events])
 
   return { ...derived, ...raw, pending, catchingUp: shownCount < events.length, connection }

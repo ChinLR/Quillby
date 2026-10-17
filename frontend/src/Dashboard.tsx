@@ -40,6 +40,8 @@ const store = {
 }
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+// Phrases from the human agent that mean they have no further room to move.
+const NO_MORE_OPTIONS = /final offer|best (i|we) can (do|offer)|(can('|no)?t|cannot|unable to) (go|offer|do) (any )?(higher|more|better)|that('s| is) (all|the most|my limit|as high as)|no (more|further) (room|flexibility)|nothing (more|else) (i|we) can/i
 const delay = (m: number) => `${Math.floor(m / 60)}h ${m % 60}m`
 
 function CaseSummary({ c, claim }: { c: Case; claim: Claim | null }) {
@@ -117,36 +119,70 @@ export function Dashboard({
   const n = useNegotiation(id, speed)
   const { inbox, refresh } = useInbox(!!id)
 
-  // Moments where Counterbot stops and asks the customer. Driven by the raw feed, so the run
-  // pauses the moment the offer arrives, not when the chat has finished catching up.
-  const [decision, setDecision] = useState<{ title: string; detail: string } | null>(null)
+  // Counterbot keeps negotiating on its own. Two kinds of alert, both driven by the raw feed so the
+  // customer hears before the chat catches up:
+  //  - info: a voucher or low offer they asked to hear about (no pause, nothing to do)
+  //  - handback: the company has run out of options ("final offer", or the same offer twice).
+  //    The run pauses and the wheel goes to the customer.
+  type Decision = { kind: 'info' | 'handback'; title: string; detail: string; amount?: number }
+  const [decision, setDecision] = useState<Decision | null>(null)
   const seenOffers = useRef(0)
+  const seenMessages = useRef(0)
+  const airline = caseData?.airline ?? 'The airline'
   const floorGbp = caseData?.floor_gbp ?? 0
+  const goalGbp = caseData?.goal_gbp ?? 0
   const check = claim?.checkIns
   useEffect(() => {
     seenOffers.current = 0
+    seenMessages.current = 0
     setDecision(null)
   }, [id])
   useEffect(() => {
     if (!id) return
-    const fresh = n.rawOffers.slice(seenOffers.current)
+    const freshMsgs = n.rawMessages.slice(seenMessages.current)
+    seenMessages.current = n.rawMessages.length
+    const freshOffers = n.rawOffers.slice(seenOffers.current)
+    const before = seenOffers.current
     seenOffers.current = n.rawOffers.length
-    for (const o of fresh) {
+
+    const lastCash = [...n.rawOffers].reverse().find((o) => o.offer_type === 'cash')
+    const finalSaid = freshMsgs.find((m) => m.sender === 'human_agent' && NO_MORE_OPTIONS.test(m.text))
+    const stalled = freshOffers.some((o, i) => {
+      const prev = n.rawOffers[before + i - 1]
+      return !o.accepted && o.offer_type === 'cash' && !!prev && !prev.accepted && prev.offer_type === 'cash' && prev.amount_gbp === o.amount_gbp
+    })
+    const stuckAt = finalSaid ? Number(finalSaid.text.match(/£\s?(\d+)/)?.[1] ?? lastCash?.amount_gbp ?? 0) : stalled ? lastCash?.amount_gbp ?? 0 : 0
+    if ((finalSaid || stalled) && n.rawStatus?.status === 'running') {
+      const amount = stuckAt > 0 ? stuckAt : undefined
+      setDecision({
+        kind: 'handback',
+        amount,
+        title: amount ? `${airline} says £${amount} is the most they can offer` : `${airline} says they have nothing more to offer`,
+        detail: `Counterbot has held out as far as it can. ${amount ? (amount >= goalGbp ? 'That meets your goal.' : amount >= floorGbp ? `That is above your £${floorGbp} minimum but below your £${goalGbp} goal.` : `That is below your £${floorGbp} minimum, so if Counterbot pushes on, ${airline} will probably end the talks.`) : ''} The next move is yours.`.replace('  ', ' '),
+      })
+      pauseNegotiation(id).catch(() => {})
+      return
+    }
+    for (const o of freshOffers) {
       if (o.accepted) continue
       const voucher = o.offer_type === 'voucher'
       const low = o.offer_type === 'cash' && o.amount_gbp < floorGbp
       if ((voucher && check?.voucher) || (low && check?.belowFloor)) {
-        setDecision({
-          title: voucher ? `${caseData?.airline ?? 'The airline'} offered a £${o.amount_gbp} voucher instead of money` : `${caseData?.airline ?? 'The airline'} offered £${o.amount_gbp} cash`,
-          detail: voucher
-            ? 'A voucher is not compensation. Do you want Counterbot to keep pushing for cash, or would you rather reply yourself?'
-            : `That is below your £${floorGbp} minimum. Do you want Counterbot to keep pushing, or would you rather reply yourself?`,
-        })
-        pauseNegotiation(id).catch(() => {})
+        setDecision((d) =>
+          d?.kind === 'handback'
+            ? d
+            : {
+                kind: 'info',
+                title: voucher ? `${airline} offered a £${o.amount_gbp} voucher instead of money` : `${airline} offered £${o.amount_gbp} cash`,
+                detail: voucher
+                  ? 'A voucher is not compensation. Counterbot is pushing back and holding out for cash. No action needed.'
+                  : `That is below your £${floorGbp} minimum. Counterbot is pushing back and holding your line. No action needed.`,
+              },
+        )
         break
       }
     }
-  }, [id, n.rawOffers, floorGbp, check, caseData?.airline])
+  }, [id, n.rawOffers, n.rawMessages, n.rawStatus, floorGbp, goalGbp, check, airline])
   const rawStatus = n.rawStatus?.status
   const notice =
     rawStatus === 'awaiting_call' || rawStatus === 'on_call'
@@ -155,7 +191,7 @@ export function Dashboard({
         ? { tone: 'rose', text: 'The talks ended without a deal. Nothing has been accepted on your behalf.' }
         : null
   useEffect(() => {
-    document.title = decision || (notice && notice.tone === 'rose') ? '● Needs you · Counterbot' : 'Counterbot'
+    document.title = decision?.kind === 'handback' ? '● Needs you · Counterbot' : decision || (notice && notice.tone === 'rose') ? '● Update · Counterbot' : 'Counterbot'
     return () => {
       document.title = 'Counterbot'
     }
@@ -306,7 +342,7 @@ export function Dashboard({
             <p className="text-sm text-slate-500">On the phone: autopilot is handling the call.</p>
           ) : (
             <button onClick={() => run(() => pauseNegotiation(id))} disabled={busy} className="rounded-lg bg-white px-5 py-2.5 font-semibold text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-50">
-              Pause / take over
+              Step in
             </button>
           )}
           {agentLive && inbox && (
@@ -336,29 +372,56 @@ export function Dashboard({
         {finished && !report && !error && <div className="h-28 animate-pulse rounded-2xl bg-emerald-100" />}
 
         {decision && (
-          <div role="alert" className="flex flex-wrap items-center gap-4 rounded-2xl bg-amber-500 px-5 py-4 text-amber-950">
-            <span className="relative flex size-3">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-950 opacity-60" />
-              <span className="relative inline-flex size-3 rounded-full bg-amber-950" />
-            </span>
+          <div
+            role={decision.kind === 'handback' ? 'alert' : 'status'}
+            className={`flex flex-wrap items-center gap-4 rounded-2xl px-5 py-4 ${decision.kind === 'handback' ? 'bg-amber-500 text-amber-950' : 'bg-amber-100 text-amber-950 ring-1 ring-amber-300'}`}
+          >
+            {decision.kind === 'handback' && (
+              <span className="relative flex size-3">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-950 opacity-60" />
+                <span className="relative inline-flex size-3 rounded-full bg-amber-950" />
+              </span>
+            )}
             <div className="min-w-0 flex-1">
-              <p className="font-semibold">Counterbot needs your say: {decision.title}</p>
+              <p className="font-semibold">{decision.kind === 'handback' ? `Over to you: ${decision.title}` : decision.title}</p>
               <p className="text-sm">{decision.detail}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button
-                disabled={busy}
-                onClick={() => run(async () => {
-                  setDecision(null)
-                  if (id) await resumeNegotiation(id)
-                })}
-                className="rounded-lg bg-amber-950 px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
-              >
-                Keep pushing
-              </button>
-              <button onClick={() => setDecision(null)} className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white">
-                I'll reply myself
-              </button>
+              {decision.kind === 'handback' ? (
+                <>
+                  <button
+                    disabled={busy}
+                    onClick={() => run(async () => {
+                      setDecision(null)
+                      if (id) await resumeNegotiation(id)
+                    })}
+                    className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white disabled:opacity-50"
+                  >
+                    Keep pushing
+                  </button>
+                  <button onClick={() => setDecision(null)} className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white">
+                    I'll reply myself
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => setDecision(null)} className="rounded-lg bg-amber-950 px-4 py-2 text-sm font-semibold text-white hover:bg-black">
+                    Got it
+                  </button>
+                  {status === 'running' && (
+                    <button
+                      disabled={busy}
+                      onClick={() => run(async () => {
+                        setDecision(null)
+                        if (id) await pauseNegotiation(id)
+                      })}
+                      className="rounded-lg bg-white/70 px-4 py-2 text-sm font-semibold hover:bg-white disabled:opacity-50"
+                    >
+                      Step in myself
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -439,7 +502,7 @@ export function Dashboard({
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="You have the wheel. Type as Alex…"
+                  placeholder="You are stepping in. Type as Alex…"
                   className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                 />
                 <button disabled={busy || !draft.trim()} className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-40">

@@ -294,7 +294,7 @@ const STEPS = [
   ['Tell us what happened', 'Describe the problem in your own words and share any receipts, bookings or emails. There are no forms to decode and no figures to guess.'],
   ['We read the policy', 'Counterbot checks your case against the rules that apply, works out what you are owed and shows you the reasoning before anything begins.'],
   ['It takes on their bot', 'It refuses the menu loops, states your claim, cites the rule and keeps up the pressure until the company hands you to a real person.'],
-  ['It negotiates with the human', 'It declines vouchers and low offers, holds firm, and moves to a phone call when the company asks. At the moments that matter, it stops and asks you.'],
+  ['It negotiates with the human', 'It declines vouchers and low offers, holds firm, and moves to a phone call when the company asks. At the moments that matter, it tells you straight away.'],
 ]
 
 function HowItWorks() {
@@ -333,7 +333,7 @@ const FEATURES: [string, string][] = [
   ['A reason for every move', 'Each step appears on a live board with a one-line explanation, so you can see what it is doing and why.'],
   ['Knows when a human arrives', 'Reply speed, wording and handoff signals tell it when the bot has stepped aside, and it changes approach at once.'],
   ['Takes the call as well', 'If the company wants to settle by phone, Counterbot answers with a voice agent and keeps negotiating, with a live transcript.'],
-  ['You stay in charge', 'Choose when it must stop and ask you. A voucher or a low offer pauses the run and alerts you straight away.'],
+  ['You stay informed', 'Counterbot keeps fighting on its own. A voucher or a low offer is flagged to you straight away, and you can step in whenever you like.'],
 ]
 
 function Features() {
@@ -412,7 +412,7 @@ function Trust() {
     ['It sticks to the facts', 'Counterbot is built to use only your case file and the policy text, and its messages are checked before they are sent.'],
     ['It never pretends to be a person', 'It says it is your assistant. No impersonation, and no tricks.'],
     ['Pressure stays truthful', 'It may mention a chargeback, a public review or a regulator complaint, but only as real next steps.'],
-    ['Nothing is accepted against your rules', 'Vouchers and offers below your minimum stop the run and ask you first.'],
+    ['Nothing is accepted against your rules', 'Counterbot holds out against vouchers and offers below your minimum, and you are told straight away.'],
   ]
   return (
     <section id="trust" className="scroll-mt-16 bg-slate-100 py-24 md:py-32">

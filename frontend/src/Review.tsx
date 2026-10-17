@@ -106,8 +106,8 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
 
             <section className="flex flex-col gap-3 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
               <div>
-                <h3 className="text-sm font-semibold">You stay in charge</h3>
-                <p className="text-sm text-slate-500">Counterbot will pause and ask you straight away if any of these happen. Anything else, it carries on.</p>
+                <h3 className="text-sm font-semibold">You stay informed</h3>
+                <p className="text-sm text-slate-500">Counterbot keeps fighting for you the whole way. It will tell you straight away if any of these happen, and you can step in whenever you like.</p>
               </div>
               {(
                 [
