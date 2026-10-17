@@ -17,7 +17,7 @@ export function Review({ claim, onStart, onBack }: { claim: Claim; onStart: (che
     `Matching it to booking ${c.booking_ref}, flight ${c.flight_number}`,
     `Checking the arrival time against the schedule`,
     `Looking up ${c.airline}'s delay policy`,
-    c.legal.title.replace(/\s*\(summary\)/i, '') + ': checking the rules',
+    'Checking the flight delay compensation rules',
     'Working out what you are owed',
   ]
   // Haggis collects to each document, reads it and collects it. The checklist is paced to finish with it.

@@ -51,7 +51,7 @@ function CaseSummary({ c, claim }: { c: Case; claim: Claim | null }) {
     <section className="grid gap-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200 md:grid-cols-[1fr_auto]">
       <div className="flex flex-col gap-1">
         <p className="text-sm text-slate-500">
-          {c.passenger_name} · Booking {c.booking_ref} · {c.airline} {c.flight_number}
+          {c.passenger_name} · {c.airline} {c.flight_number}
         </p>
         <p className="text-xl font-semibold text-slate-900">
           {c.origin} → {c.destination}
@@ -61,7 +61,7 @@ function CaseSummary({ c, claim }: { c: Case; claim: Claim | null }) {
           <b className="text-rose-600">{delay(c.delay_minutes)} late</b>. Airline says “{c.airline_reason}”.
         </p>
         <details className="mt-1 text-sm text-slate-600">
-          <summary className="cursor-pointer font-medium text-slate-700">{c.legal.title}</summary>
+          <summary className="cursor-pointer font-medium text-slate-700">Flight delay compensation rules (UK law)</summary>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {c.legal.points.map((p) => (
               <li key={p}>{p}</li>
