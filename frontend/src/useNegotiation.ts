@@ -78,5 +78,29 @@ export function useNegotiation(id: string | null) {
     }
   }, [events])
 
-  return { ...derived, connection }
+  const { messages: allMessages, ...rest } = derived
+  const { shown, catchingUp } = usePaced(allMessages, id)
+  return { ...rest, messages: shown, catchingUp, connection }
+}
+
+// Contract v2: never dump history at once. Live messages already arrive paced by the
+// backend, so they show immediately; a backlog (refresh, reconnect) is replayed one
+// message at a time, waiting the message's typing_ms (clamped) before each.
+function usePaced(all: Message[], id: string | null) {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    setCount(0)
+  }, [id])
+
+  useEffect(() => {
+    if (count >= all.length) return
+    const backlog = all.length - count
+    const next = all[count]
+    const wait = backlog > 1 ? Math.min(Math.max(next.typing_ms, 350), 1200) : 0
+    const t = window.setTimeout(() => setCount((c) => Math.min(c + 1, all.length)), wait)
+    return () => window.clearTimeout(t)
+  }, [count, all])
+
+  return { shown: all.slice(0, count), catchingUp: count < all.length }
 }

@@ -223,7 +223,7 @@ export function Dashboard() {
               <Chat
                 messages={n.messages}
                 mine={['customer_bot', 'customer']}
-                typing={status === 'running'}
+                typing={status === 'running' || n.catchingUp}
                 empty={id ? 'Connecting…' : 'Press Start and Counterbot takes it from here.'}
               />
             </div>

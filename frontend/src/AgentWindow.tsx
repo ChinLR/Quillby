@@ -82,7 +82,7 @@ export function AgentWindow() {
           <div className="min-h-0 flex-1">
             <Chat
               messages={inbox?.messages ?? []}
-              mine={['human_agent']}
+              mine={['customer_bot', 'customer']}
               empty={idle ? 'Waiting for a customer. Start a run on the dashboard.' : 'Loading chat…'}
             />
           </div>
