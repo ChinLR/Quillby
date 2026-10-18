@@ -1,0 +1,30 @@
+[
+  {
+    "step": 1,
+    "offer_type": "voucher",
+    "amount_gbp": 75,
+    "condition": "Open with this goodwill voucher.",
+    "channel": "chat"
+  },
+  {
+    "step": 2,
+    "offer_type": "cash",
+    "amount_gbp": 150,
+    "condition": "If Quillby refuses the voucher.",
+    "channel": "chat"
+  },
+  {
+    "step": 3,
+    "offer_type": "cash",
+    "amount_gbp": 300,
+    "condition": "Only if Quillby holds firm.",
+    "channel": "chat"
+  },
+  {
+    "step": 4,
+    "offer_type": "cash",
+    "amount_gbp": 350,
+    "condition": "Settle at £350 only if Quillby refutes 'operational reasons'.",
+    "channel": "chat"
+  }
+]

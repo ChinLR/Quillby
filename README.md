@@ -231,6 +231,12 @@ cd backend && ENGINE=stub ../.venv/bin/uvicorn main:app --port 8000
 
 ---
 
+## Deploying (Vercel + Render)
+
+The React app goes on Vercel and the backend on Render, which keeps the live negotiation in memory. The hosted version runs live with no phone call and rate limits. Step by step: **[DEPLOY.md](DEPLOY.md)**. Configs: `render.yaml` (backend blueprint) and `frontend/vercel.json` (forwards `/api` and `/northwind` to the backend).
+
+---
+
 ## Configuration
 
 Settings live in `.env` (see `.env.example`).
@@ -246,7 +252,9 @@ Settings live in `.env` (see `.env.example`).
 | `COUNTERBOT_PHONE_NUMBER` | no | The number to show; otherwise looked up from ElevenLabs |
 | `REPLAY_MODE` | no | `1` = serve only cached LLM answers |
 | `ENGINE` | no | `stub` = scripted run with no LLM |
-| `POLICY_BASE_URL` | no | Where the demo airline's policy is fetched from, default `http://127.0.0.1:8000` |
+| `POLICY_BASE_URL` | no | Where the demo airline's policy is fetched from; defaults to this server's own port |
+| `PUBLIC_MODE` | no | `1` = rate limits for a public link |
+| `CALL_FEATURE` | no | `0` = no phone call; the agent settles in the chat |
 
 ---
 

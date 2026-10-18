@@ -22,7 +22,7 @@ except Exception:
 
 # Where each company's published policy lives. The demo airline's page is served by our own backend.
 POLICY_PATHS = {"northwind": "/northwind/policy/"}
-BASE_URL = os.environ.get("POLICY_BASE_URL", "http://127.0.0.1:8000")
+BASE_URL = os.environ.get("POLICY_BASE_URL") or f"http://127.0.0.1:{os.environ.get('PORT', '8000')}"
 FETCH_TIMEOUT_S = 8
 CLAUSE_RE = re.compile(r"^(\d{1,2}\.\d{1,2})\s+(.+)$")
 TOPIC_RE = re.compile(r"delay|compensat|voucher|extraordinary|operational|refund|claim", re.I)

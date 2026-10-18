@@ -1,6 +1,8 @@
 import asyncio
+import collections
 import os
 import pathlib
+import time
 
 from dotenv import load_dotenv
 
@@ -41,10 +43,33 @@ else:
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", *[o.strip() for o in os.environ.get("ALLOW_ORIGINS", "").split(",") if o.strip()]],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# PUBLIC_MODE=1 (the hosted version): limit how much one visitor, and the whole demo, can spend per hour and per day.
+PUBLIC_MODE = os.environ.get("PUBLIC_MODE") == "1"
+LIMITS = {  # kind: (per visitor per hour, whole demo per day)
+    "intake": (int(os.environ.get("RATE_INTAKE_PER_HOUR", 12)), int(os.environ.get("DAILY_INTAKE_CAP", 150))),
+    "run": (int(os.environ.get("RATE_RUNS_PER_HOUR", 6)), int(os.environ.get("DAILY_RUN_CAP", 80))),
+}
+_hits: dict[str, list[float]] = collections.defaultdict(list)
+
+
+def check_rate(request: Request, kind: str):
+    if not PUBLIC_MODE:
+        return
+    per_hour, per_day = LIMITS[kind]
+    now = time.time()
+    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?")
+    mine = [t for t in _hits[f"{kind}:{ip}"] if now - t < 3600]
+    everyone = [t for t in _hits[f"{kind}:*"] if now - t < 86400]
+    if len(mine) >= per_hour or len(everyone) >= per_day:
+        raise HTTPException(status_code=429, detail="The demo is busy right now. Please try again in a little while.")
+    _hits[f"{kind}:{ip}"] = mine + [now]
+    _hits[f"{kind}:*"] = everyone + [now]
+
 
 # One active negotiation at a time (see .plans/contract.md).
 current: Run | None = None
@@ -89,8 +114,9 @@ def get_case():
 
 
 @app.post("/api/intake", response_model=IntakeResult)
-async def post_intake(body: IntakeRequest):
+async def post_intake(request: Request, body: IntakeRequest):
     global current_case, current_supported
+    check_rate(request, "intake")
     if body.goal_gbp is not None and body.floor_gbp is not None and body.floor_gbp > body.goal_gbp:
         raise HTTPException(status_code=422, detail="Floor cannot be above the goal")
     result = await intake.build_case(body.description, body.goal_gbp, body.floor_gbp, body.documents)
@@ -99,8 +125,9 @@ async def post_intake(body: IntakeRequest):
 
 
 @app.post("/api/negotiations", response_model=NegotiationState)
-async def start_negotiation(body: StartRequest | None = None):
+async def start_negotiation(request: Request, body: StartRequest | None = None):
     global current, counter
+    check_rate(request, "run")
     body = body or StartRequest()
     if not current_supported:
         raise HTTPException(status_code=409, detail="This demo negotiates flight delays only")

@@ -6,6 +6,7 @@ Engines subclass RunBase and implement _bot_phase. They can override _word
 
 import asyncio
 import json
+import os
 import pathlib
 import re
 import time
@@ -35,9 +36,12 @@ def _load(name: str):
 
 CASE = Case(**_load("case.json"))
 COMPANY = _load("company_bot.json")
-LADDER = [ConcessionStep(**s) for s in _load("concession_ladder.json")]
+# CALL_FEATURE=0 (the public hosted version): no phone call. The human agent concedes in the chat instead.
+CALL_FEATURE = os.environ.get("CALL_FEATURE", "1") != "0"
+_suffix = "" if CALL_FEATURE else "_chat"
+LADDER = [ConcessionStep(**s) for s in _load(f"concession_ladder{_suffix}.json")]
 CHAT_LADDER = [s for s in LADDER if s.channel == "chat"]
-AGENT_LINES = {line["step"]: line["text"] for line in _load("scripted_agent.json")["lines"]}
+AGENT_LINES = {line["step"]: line["text"] for line in _load(f"scripted_agent{_suffix}.json")["lines"]}
 NODES = {n["id"]: n for n in COMPANY["nodes"]}
 
 BOT_LABEL = "Nova (Northwind Assistant)"
@@ -282,6 +286,9 @@ class RunBase:
     def decide(self, amount, offer_type, text):
         """Return (move, reason, pressure, template_text). The policy never folds below the floor."""
         g, f = self.goal, self.floor
+        if CALL_RE.search(text) and not CALL_FEATURE:
+            return ("hold_firm", "They offered a call. Keeping it in writing here.", 95,
+                    f"Thanks, but {self.first_name} would like to keep this in writing here. What can you offer in cash?")
         if CALL_RE.search(text):
             return ("accept_call", "The agent wants to call. Quillby's voice will answer the phone.", 97,
                     f"Of course. Please call {self.first_name}'s line on {{number}}. {self.first_name}'s assistant will pick up.")
@@ -312,7 +319,7 @@ class RunBase:
         return template, reason
 
     async def _respond_to_agent(self, text: str) -> bool:
-        if CALL_RE.search(text):
+        if CALL_FEATURE and CALL_RE.search(text):
             amount, offer_type = None, None
         else:
             amount, offer_type = await self._parse_offer(text)
